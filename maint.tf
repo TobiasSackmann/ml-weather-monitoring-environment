@@ -27,7 +27,7 @@ resource "libvirt_domain" "debian_vm" {
 
 resource "libvirt_network" "kube_network" {
   # the name used by libvirt
-  name = "testbed"
+  name = "testbed_network"
 
   # mode can be: "nat" (default), "none", "route", "open", "bridge"
   mode = "nat"
