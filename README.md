@@ -10,3 +10,4 @@ Requirements
     * libvirt-clients
 * virt-manager is installed on you target host
 * optional: cockpit is installed on you target host (makes it easy to verify the result on the web overlay on Port 9090)
+* Executing user is member of kvm and libvirt group on the targte host

@@ -25,7 +25,7 @@ resource "libvirt_domain" "debian_vm" {
   }
 }
 
-resource "libvirt_network" "kube_network" {
+resource "libvirt_network" "testbed_network" {
   # the name used by libvirt
   name = "testbed_network"
 
