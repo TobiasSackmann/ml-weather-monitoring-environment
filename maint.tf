@@ -6,7 +6,8 @@ resource "libvirt_volume" "debian_image" {
   name = "debian.qcow2"
   pool = "default" # Name des Speicherpools
   #source      = "https://cdimage.debian.org/cdimage/openstack/current/debian-10-openstack-amd64.qcow2"
-  source = "https://cloud.debian.org/images/cloud/bullseye/20230912-1501/debian-11-nocloud-ppc64el-20230912-1501.qcow2"
+  #source = "https://cloud.debian.org/images/cloud/bullseye/20230912-1501/debian-11-nocloud-ppc64el-20230912-1501.qcow2"
+  source = /home/tobias/debian-11-nocloud-ppc64el-20230912-1501.qcow2
   format = "qcow2"
   #content_type = "raw"
 }
