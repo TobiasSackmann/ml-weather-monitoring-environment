@@ -33,7 +33,8 @@ resource "libvirt_network" "testbed_network" {
   mode = "nat"
 
   #  the domain used by the DNS server in this network
-  domain = libvirt_domain.debian_vm.name
+  # domain = libvirt_domain.debian_vm.name
+  domain = "debian-vm"
 
   #  list of subnets the addresses allowed for domains connected
   # also derived to define the host addresses
