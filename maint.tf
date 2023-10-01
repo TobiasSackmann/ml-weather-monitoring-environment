@@ -11,6 +11,8 @@ resource "libvirt_volume" "debian_image" {
   #content_type = "raw"
 }
 
+
+# TODO: Debug Domain Creation
 resource "libvirt_domain" "debian_vm" {
   name   = "debian-vm"
   memory = "2048"
@@ -21,7 +23,8 @@ resource "libvirt_domain" "debian_vm" {
   }
 
   network_interface {
-    network_name = "testbed_network" # Name des virtuellen Netzwerks
+    #network_name = "testbed_network" # Name des virtuellen Netzwerks
+    network_id     = libvirt_network.testbed_network.id
   }
 }
 
