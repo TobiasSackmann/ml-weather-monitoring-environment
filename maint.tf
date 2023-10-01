@@ -37,12 +37,12 @@ resource "libvirt_network" "testbed_network" {
 
   #  the domain used by the DNS server in this network
   # domain = libvirt_domain.debian_vm.name
-  domain = "debian-vm"
+  # domain = "debian-vm"
 
   #  list of subnets the addresses allowed for domains connected
   # also derived to define the host addresses
   # also derived to define the addresses served by the DHCP server
-  addresses = ["192.168.0.0/24"]
+  addresses = ["192.168.0.0/20"]
 
   # (optional) the bridge device defines the name of a bridge device
   # which will be used to construct the virtual network.
