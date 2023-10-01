@@ -5,9 +5,8 @@ provider "libvirt" {
 resource "libvirt_volume" "debian_image" {
   name = "debian.qcow2"
   pool = "default" # Name des Speicherpools
-  #source      = "https://cdimage.debian.org/cdimage/openstack/current/debian-10-openstack-amd64.qcow2"
-  #source = "https://cloud.debian.org/images/cloud/bullseye/20230912-1501/debian-11-nocloud-ppc64el-20230912-1501.qcow2"
-  source = "/home/tobias/debian-11-nocloud-ppc64el-20230912-1501.qcow2"
+  source = "https://cloud.debian.org/images/cloud/bullseye/latest/debian-11-genericcloud-amd64.qcow2"
+  #source = "/home/tobias/debian-11-nocloud-ppc64el-20230912-1501.qcow2"
   format = "qcow2"
   #content_type = "raw"
 }
@@ -34,7 +33,7 @@ resource "libvirt_network" "testbed_network" {
   mode = "nat"
 
   #  the domain used by the DNS server in this network
-  domain = "debian_vm"
+  domain = libvirt_domain.debian_vm.name
 
   #  list of subnets the addresses allowed for domains connected
   # also derived to define the host addresses
