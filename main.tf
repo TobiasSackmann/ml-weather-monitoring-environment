@@ -2,6 +2,13 @@ provider "libvirt" {
   uri = "qemu:///system" # Verbindung zur lokalen QEMU-Instanz
 }
 
+resource "libvirt_pool" "debian" {
+  name = "debian"
+  type = "dir"
+  path = "/tmp/terraform-provider-libvirt-pool-debian"
+}
+
+
 resource "libvirt_volume" "debian_image" {
   name = "debian.qcow2"
   pool = "default" # Name des Speicherpools
@@ -21,7 +28,7 @@ resource "libvirt_cloudinit_disk" "commoninit" {
   name           = "commoninit.iso"
   user_data      = data.template_file.user_data.rendered
   network_config = data.template_file.network_config.rendered
-  pool           = libvirt_pool.ubuntu.name
+  pool           = libvirt_pool.debian.name
 }
 
 resource "libvirt_network" "testbed_network" {
