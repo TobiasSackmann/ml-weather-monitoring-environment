@@ -1,57 +1,46 @@
-provider "libvirt" {
-  uri = "qemu:///system" # Verbindung zur lokalen QEMU-Instanz
+provider "proxmox" {
+  pm_api_url          = "https://192.168.178.36:8006/api2/json"
+  pm_api_token_id     = "root@pam!terraform"
+  pm_api_token_secret = "3f6b2a12-a51d-43fd-a0e4-aea8c1d6e183"
+  pm_tls_insecure     = true
 }
 
-resource "libvirt_volume" "debian_image" {
-  name = "debian.qcow2"
-  pool = "default" # Name des Speicherpools
-  source = "https://cloud.debian.org/images/cloud/bullseye/latest/debian-11-genericcloud-amd64.qcow2"
-  #source = "/home/tobias/debian-11-nocloud-ppc64el-20230912-1501.qcow2"
-  format = "qcow2"
-  #content_type = "raw"
-}
+resource "proxmox_vm_qemu" "srv_demo_1" {
+  name        = "srv-demo-1"
+  desc        = "Ubuntu-Server"
+  target_node = "proxmox"
+  sshkeys     = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDnA0gYQ1FZUpkMclmv6Eb0fC98pImM51p68+3KwHCuL+zjjPkG4DYKenhkFWHG4esISi2HFKSCNMwwd6sGUaLnqbYFt2vIuFHgRo4IRcjqUy3lVAhnCNOMBqrCzjKs84P/a7j0BgIKVXUT6yELCVs/5ubHM3EP+NmYlLjpizSoBs1TVpWdlBhnQZPi9TLV6RNg8Tnhq8undyfRigU1rfl/XK73kECbyqnRD75GdLMdxOXw5s8QVof4TOi2exMBEQUvHWpEPPa3z8Mqw8a0JcCwTM5bW8YBNx6myp+th44LR4pOqP1nyHqBtGmAijAKV8gCEaQKAK5tYg9+T90oIVAUlRunVQCbtpqorg3E9PFBul6QR7vop8jwC0adhgomrlnYknYCIDHTzprOMEzUBZwtj5TkGVwGX2xFpjEvazHJOBhH9+Fv2bkO1A7u4zUqXq/JPoaESHOTwrxzF3GxoHVuGkMUtXQLTDk+71c1Do5TL7kuS2wQYYfeGUlmYQffhSU= tobias@tobias-endeavour-os"
+  agent       = 1
+  clone       = "ubuntu2204-ci"
+  qemu_os     = "l26"
+  # this l26 is a small l like linux
+  cores   = 2
+  sockets = 1
+  cpu     = "host"
+  memory  = 8096
+  scsihw  = "virtio-scsi-pci"
 
-
-# TODO: Debug Domain Creation
-resource "libvirt_domain" "debian_vm" {
-  name   = "debian-vm"
-  memory = "2048"
-  vcpu   = 2
+  vga {
+    type = "std"
+  }
 
   disk {
-    volume_id = libvirt_volume.debian_image.id
+    storage = "local-lvm"
+    type    = "scsi"
+    size    = "83212M"
+    discard = "on"
+    ssd     = "1"
   }
 
-  network_interface {
-    #network_name = "testbed_network" # Name des virtuellen Netzwerks
-    network_id     = libvirt_network.testbed_network.id
+  network {
+    bridge = "vmbr0"
+    model  = "virtio"
   }
-}
 
-resource "libvirt_network" "testbed_network" {
-  # the name used by libvirt
-  name = "testbed_network"
+  ## muss dem Template matchen
 
-  # mode can be: "nat" (default), "none", "route", "open", "bridge"
-  mode = "nat"
-
-  #  the domain used by the DNS server in this network
-  # domain = libvirt_domain.debian_vm.name
-  # domain = "debian-vm"
-
-  #  list of subnets the addresses allowed for domains connected
-  # also derived to define the host addresses
-  # also derived to define the addresses served by the DHCP server
-  addresses = ["192.168.0.0/20"]
-
-  # (optional) the bridge device defines the name of a bridge device
-  # which will be used to construct the virtual network.
-  # (only necessary in "bridge" mode)
-  # bridge = "br7"
-
-  # (optional) the MTU for the network. If not supplied, the underlying device's
-  # default is used (usually 1500)
-  # mtu = 9000
-
-
+  os_type    = "cloud-init"
+  ipconfig0  = "ip=dhcp"
+  nameserver = "192.168.110.61"
+  ciuser     = "tk"
 }
