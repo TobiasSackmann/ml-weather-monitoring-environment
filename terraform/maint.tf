@@ -41,6 +41,6 @@ resource "proxmox_vm_qemu" "srv_demo_1" {
 
   os_type    = "cloud-init"
   ipconfig0  = "ip=dhcp"
-  nameserver = "192.168.110.61"
+  nameserver = "8.8.8.8"
   ciuser     = "tk"
 }
