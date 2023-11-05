@@ -1,5 +1,5 @@
 # terraform-network-testbed
-Terraform Repository for creating a kvm/qemu based virtual network
+Terraform Repository for creating a Proxmox based virtual network with monitoring infrastructure.
 
 Requirements
 ------------
