@@ -20,6 +20,7 @@ variable "proxmox_api_token_secret" {
 
 variable "public_ssh_key" {
   description = "SSH Key to be copied to the created virtual machines"
+  sensitive   = true
   type        = string
 }
 
@@ -33,14 +34,12 @@ variable "ubuntu_cloudinit_template" {
 variable "proxmox_node_name" {
   description = "The target node of your Proxmox Cluster"
   type        = string
-  sensitive   = true
   default     = "proxmox"
 }
 
 variable "ovs_bridge" {
   description = "The target OVS bridge"
   type        = string
-  sensitive   = true
   default     = "vmbr10"
 }
 
