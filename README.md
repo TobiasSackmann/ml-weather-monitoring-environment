@@ -13,3 +13,4 @@ Requirements
 Usage
 -----
 * Create your .tfvars file with the variables defined in the terraform/variables.tf
+* Execute the setup.sh script
