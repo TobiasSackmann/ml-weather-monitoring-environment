@@ -9,7 +9,7 @@ resource "proxmox_vm_qemu" "traffic-host1" {
   name        = "traffic-host1"
   desc        = "Ubuntu-Server for Traffic generation"
   target_node = var.proxmox_node_name
-  sshkeys     = var.public_ssh_key
+  sshkeys     = var.public_ssh_keys
   agent       = 1
   clone       = var.ubuntu_cloudinit_template
   qemu_os     = "l26"
@@ -45,7 +45,7 @@ resource "proxmox_vm_qemu" "traffic-host2" {
   name        = "traffic-host2"
   desc        = "Ubuntu-Server for Traffic generation"
   target_node = var.proxmox_node_name
-  sshkeys     = var.public_ssh_key
+  sshkeys     = var.public_ssh_keys
   agent       = 1
   clone       = var.ubuntu_cloudinit_template
   qemu_os     = "l26"
@@ -81,7 +81,7 @@ resource "proxmox_vm_qemu" "k3s" {
   name        = "k3s"
   desc        = "k3s Ubuntu-Server"
   target_node = var.proxmox_node_name
-  sshkeys     = var.public_ssh_key
+  sshkeys     = var.public_ssh_keys
   agent       = 1
   clone       = var.ubuntu_cloudinit_template
   qemu_os     = "l26"
@@ -111,4 +111,6 @@ resource "proxmox_vm_qemu" "k3s" {
   nameserver = var.nameserver
   ciuser     = var.user
   cipassword = var.password
+
+
 }

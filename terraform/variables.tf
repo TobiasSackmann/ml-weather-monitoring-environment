@@ -18,7 +18,7 @@ variable "proxmox_api_token_secret" {
   default     = "somereall-ygoo-dsec-ret0-foofoofoofoo"
 }
 
-variable "public_ssh_key" {
+variable "public_ssh_keys" {
   description = "SSH Key to be copied to the created virtual machines"
   sensitive   = true
   type        = string
