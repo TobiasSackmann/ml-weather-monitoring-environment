@@ -8,6 +8,8 @@ Requirements
 * Initial Proxmox configurations have been applied like creating an API Token
 * An Cloud Init capable image is available (is called ubuntu2204-ci in the code of this repository)
 * An OVS Bridge with name vmbr10 is available
+* Python3 is install with packages
+    * jinja2
 
 
 Usage

@@ -19,3 +19,5 @@ k3s_name=$(terraform output -state=./terraform/terraform.tfstate k3s_name)
 echo "${traffichost1_name},${traffichost1_ip}" >> host_ip.csv
 echo "${traffichost2_name},${traffichost2_ip}" >> host_ip.csv
 echo "${k3s_name},${k3s_ip}" >> host_ip.csv
+
+ansible-playbook playbook/site.yml -i inventory.yml
