@@ -14,5 +14,6 @@ Requirements
 
 Usage
 -----
+* After cloning this repository, you should update the modules with `git submodule update --init --recursive`
 * Create your .tfvars file with the variables defined in the terraform/variables.tf
 * Execute the setup.sh script
