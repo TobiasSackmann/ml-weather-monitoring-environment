@@ -1,4 +1,7 @@
 terraform/.terraform
-.terraform.lock.hcl
-terraform.tfstate
+.terraform*
+terraform.*
 *.tfvars
+*.log
+*.csv
+inventory.yml

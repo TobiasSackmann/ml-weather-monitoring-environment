@@ -1,17 +1,17 @@
 provider "proxmox" {
-  pm_api_url          = "https://192.168.178.36:8006/api2/json"
-  pm_api_token_id     = "root@pam!terraform"
-  pm_api_token_secret = "3f6b2a12-a51d-43fd-a0e4-aea8c1d6e183"
+  pm_api_url          = var.proxmox_api_url
+  pm_api_token_id     = var.proxmox_api_token_id
+  pm_api_token_secret = var.proxmox_api_token_secret
   pm_tls_insecure     = true
 }
 
 resource "proxmox_vm_qemu" "traffic-host1" {
   name        = "traffic-host1"
-  desc        = "Ubuntu-Server"
-  target_node = "proxmox"
-  sshkeys     = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDnA0gYQ1FZUpkMclmv6Eb0fC98pImM51p68+3KwHCuL+zjjPkG4DYKenhkFWHG4esISi2HFKSCNMwwd6sGUaLnqbYFt2vIuFHgRo4IRcjqUy3lVAhnCNOMBqrCzjKs84P/a7j0BgIKVXUT6yELCVs/5ubHM3EP+NmYlLjpizSoBs1TVpWdlBhnQZPi9TLV6RNg8Tnhq8undyfRigU1rfl/XK73kECbyqnRD75GdLMdxOXw5s8QVof4TOi2exMBEQUvHWpEPPa3z8Mqw8a0JcCwTM5bW8YBNx6myp+th44LR4pOqP1nyHqBtGmAijAKV8gCEaQKAK5tYg9+T90oIVAUlRunVQCbtpqorg3E9PFBul6QR7vop8jwC0adhgomrlnYknYCIDHTzprOMEzUBZwtj5TkGVwGX2xFpjEvazHJOBhH9+Fv2bkO1A7u4zUqXq/JPoaESHOTwrxzF3GxoHVuGkMUtXQLTDk+71c1Do5TL7kuS2wQYYfeGUlmYQffhSU= tobias@tobias-endeavour-os"
+  desc        = "Ubuntu-Server for Traffic generation"
+  target_node = var.proxmox_node_name
+  sshkeys     = var.public_ssh_keys
   agent       = 1
-  clone       = "ubuntu2204-ci"
+  clone       = var.ubuntu_cloudinit_template
   qemu_os     = "l26"
   # this l26 is a small l like linux
   cores   = 2
@@ -30,25 +30,24 @@ resource "proxmox_vm_qemu" "traffic-host1" {
     ssd     = "1"
   }
   network {
-    bridge = "vmbr10"
+    bridge = var.ovs_bridge
     model  = "virtio"
-    #model = "e1000"
   }
   ## muss dem Template matchen
   os_type    = "cloud-init"
   ipconfig0  = "ip=dhcp"
-  nameserver = "8.8.8.8"
-  ciuser     = "tobias"
-  cipassword = "ubuntu"
+  nameserver = var.nameserver
+  ciuser     = var.user
+  cipassword = var.password
 }
 
 resource "proxmox_vm_qemu" "traffic-host2" {
   name        = "traffic-host2"
-  desc        = "Ubuntu-Server"
-  target_node = "proxmox"
-  sshkeys     = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDnA0gYQ1FZUpkMclmv6Eb0fC98pImM51p68+3KwHCuL+zjjPkG4DYKenhkFWHG4esISi2HFKSCNMwwd6sGUaLnqbYFt2vIuFHgRo4IRcjqUy3lVAhnCNOMBqrCzjKs84P/a7j0BgIKVXUT6yELCVs/5ubHM3EP+NmYlLjpizSoBs1TVpWdlBhnQZPi9TLV6RNg8Tnhq8undyfRigU1rfl/XK73kECbyqnRD75GdLMdxOXw5s8QVof4TOi2exMBEQUvHWpEPPa3z8Mqw8a0JcCwTM5bW8YBNx6myp+th44LR4pOqP1nyHqBtGmAijAKV8gCEaQKAK5tYg9+T90oIVAUlRunVQCbtpqorg3E9PFBul6QR7vop8jwC0adhgomrlnYknYCIDHTzprOMEzUBZwtj5TkGVwGX2xFpjEvazHJOBhH9+Fv2bkO1A7u4zUqXq/JPoaESHOTwrxzF3GxoHVuGkMUtXQLTDk+71c1Do5TL7kuS2wQYYfeGUlmYQffhSU= tobias@tobias-endeavour-os"
+  desc        = "Ubuntu-Server for Traffic generation"
+  target_node = var.proxmox_node_name
+  sshkeys     = var.public_ssh_keys
   agent       = 1
-  clone       = "ubuntu2204-ci"
+  clone       = var.ubuntu_cloudinit_template
   qemu_os     = "l26"
   # this l26 is a small l like linux
   cores   = 2
@@ -67,14 +66,51 @@ resource "proxmox_vm_qemu" "traffic-host2" {
     ssd     = "1"
   }
   network {
-    bridge = "vmbr10"
+    bridge = var.ovs_bridge
     model  = "virtio"
-    #model = "e1000"
   }
   ## muss dem Template matchen
   os_type    = "cloud-init"
   ipconfig0  = "ip=dhcp"
-  nameserver = "8.8.8.8"
-  ciuser     = "tobias"
-  cipassword = "ubuntu"
+  nameserver = var.nameserver
+  ciuser     = var.user
+  cipassword = var.password
+}
+
+resource "proxmox_vm_qemu" "k3s" {
+  name        = "k3s"
+  desc        = "k3s Ubuntu-Server"
+  target_node = var.proxmox_node_name
+  sshkeys     = var.public_ssh_keys
+  agent       = 1
+  clone       = var.ubuntu_cloudinit_template
+  qemu_os     = "l26"
+  # this l26 is a small l like linux
+  cores   = 2
+  sockets = 1
+  cpu     = "host"
+  memory  = 8096
+  scsihw  = "virtio-scsi-pci"
+  vga {
+    type = "std"
+  }
+  disk {
+    storage = "local-lvm"
+    type    = "scsi"
+    size    = "100G"
+    discard = "on"
+    ssd     = "1"
+  }
+  network {
+    bridge = var.ovs_bridge
+    model  = "virtio"
+  }
+  ## muss dem Template matchen
+  os_type    = "cloud-init"
+  ipconfig0  = "ip=dhcp"
+  nameserver = var.nameserver
+  ciuser     = var.user
+  cipassword = var.password
+
+
 }
