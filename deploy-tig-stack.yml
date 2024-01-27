@@ -1,0 +1,128 @@
+---
+- hosts: k3s_cluster
+  tasks:
+  - name: install apt pre-requisites
+    become: yes
+    apt:
+      name:
+        - python3-pip
+      update_cache: yes
+  - name: install pip pre-requisites
+    pip:
+      name:
+        - openshift
+        - pyyaml
+        - kubernetes
+  - name: copy kubeconfig to home directory
+    become: yes
+    ansible.builtin.copy:
+      src: /etc/rancher/k3s/k3s.yaml
+      dest: /home/{{ ansible_user }}/.kube/config 
+      remote_src: true
+      owner: '{{ ansible_user }}'
+      mode: '0644'
+  - name: Get a list of all pods from any namespace
+    kubernetes.core.k8s_info:
+      host: https://192.168.178.108:6443/
+      kind: Pod
+    register: pod_list
+  - name: Create monitoring namespace
+    kubernetes.core.k8s:
+      name: monitoring
+      api_version: v1
+      kind: Namespace
+      state: present
+  # - name: Create a Deployment by reading the definition from a local file
+  #   kubernetes.core.k8s:
+  #     api_version: v1
+  #     state: present
+  #     definition: "{{ lookup('file', './deployment.yml') | from_yaml }}"
+  #     namespace: monitoring'
+  - name: Create InfluxDB pod
+    k8s:
+      state: present
+      definition:
+        apiVersion: v1
+        kind: Pod
+        metadata:
+          name: influxdb
+          namespace: monitoring
+        spec:
+          containers:
+          - name: influxdb
+            image: influxdb:2.2.4
+            ports:
+            - containerPort: 8086
+  - name: Create Grafana pod
+    k8s:
+      state: present
+      definition:
+        apiVersion: v1
+        kind: Pod
+        metadata:
+          name: grafana
+          namespace: monitoring
+        spec:
+          containers:
+          - name: grafana
+            image: grafana/grafana:8.3.3
+            ports:
+            - containerPort: 3000
+  - name: Create Telegraf pod
+    k8s:
+      state: present
+      definition:
+        apiVersion: v1
+        kind: Pod
+        metadata:
+          name: telegraf
+          namespace: monitoring
+        spec:
+          containers:
+          - name: telegraf
+            image: telegraf:1.18.3
+            command:
+            - telegraf
+            - --config
+            - /etc/telegraf/telegraf.conf
+            ports:
+            - containerPort: 8080
+  # - name: Configure InfluxDB pod
+  #   k8s:
+  #     state: present
+  #     resource:
+  #       resource_path: /etc/influxdb/influxdb.conf
+  #       content: |
+  #         [http]
+  #         enabled = true
+  #         bind-address = 0.0.0.0
+  #         port = 8086
+  # - name: Configure Grafana pod
+  #   k8s:
+  #     state: present
+  #     resource:
+  #       resource_path: /etc/grafana/grafana.ini
+  #       content: |
+  #         [server]
+  #         protocol = http
+  #         http_port = 3000
+  #         [databases]
+  #         default = influxdb
+  #         [influxdb]
+  #         enabled = true
+  #         host = influxdb
+  #         port = 8086
+  #         database = telegraf
+  # - name: Configure Telegraf pod
+  #   k8s:
+  #     state: present
+  #     resource:
+  #       resource_path: /etc/telegraf/telegraf.conf
+  #       content: |
+  #         [[inputs.docker]]
+  #         endpoint = "tcp://localhost:9123"
+  #         containers_whitelist = ["*"]
+  #         [[outputs.influxdb]]
+  #         database = telegraf
+  #         host = influxdb
+  #         port = 8086
