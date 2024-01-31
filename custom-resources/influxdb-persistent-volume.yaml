@@ -5,8 +5,8 @@ metadata:
   name: influxdb-pv
 spec:
   capacity:
-    storage: 1Gi
+    storage: 20Gi
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/path/to/influxdb/data"
+    path: "/home/{{ ansible_user }}/influxdb/data"

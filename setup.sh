@@ -25,4 +25,5 @@ python3 parse_inventory.py
 # install k3s on the k3s host
 cd k3s-ansible 
 ansible-playbook playbook/site.yml -i ../inventory.yml
-# ansible-playbook deploy-tig-stack.yml -i inventory.yml
+cd ..
+ansible-playbook deploy-tig-stack.yml -i inventory.yml

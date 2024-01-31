@@ -27,6 +27,11 @@
       api_version: v1
       kind: Namespace
       state: present
+  - name: Create Volume directory
+    ansible.builtin.file:
+      path: /home/{{ ansible_user }}/influxdb/data
+      state: directory
+      mode: "0777"
   - name: Create influxdb persistent volume 
     kubernetes.core.k8s:
       api_version: v1
