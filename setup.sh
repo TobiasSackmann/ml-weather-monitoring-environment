@@ -22,6 +22,11 @@ echo "${k3s_name},${k3s_ip}" >> host_ip.csv
 
 python3 parse_inventory.py
 
+# Slepp for 30 seconds to be sure that host is up. k3s Playbook may fail otherwise
+echo 'sleep for 100 seconds to ensure k3s host is ready'
+sleep 100s
+echo 'start installing k3s'
+
 # install k3s on the k3s host
 cd k3s-ansible 
 ansible-playbook playbook/site.yml -i ../inventory.yml

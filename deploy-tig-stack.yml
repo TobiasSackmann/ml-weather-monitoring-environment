@@ -36,41 +36,47 @@
     kubernetes.core.k8s:
       api_version: v1
       state: present
-      definition: "{{ lookup('file', 'custom-resources/influxdb-persistent-volume.yaml') | from_yaml }}"
+      definition: "{{ lookup('file', 'custom-resources/influxdb/influxdb-persistent-volume.yaml') | from_yaml }}"
       namespace: monitoring'
   - name: Create influxdb persistent volume claim
     kubernetes.core.k8s:
       api_version: v1
       state: present
-      definition: "{{ lookup('file', 'custom-resources/influxdb-persistent-volume-claim.yaml') | from_yaml }}"
+      definition: "{{ lookup('file', 'custom-resources/influxdb/influxdb-persistent-volume-claim.yaml') | from_yaml }}"
+      namespace: monitoring'
+  - name: Create influxdb secrets
+    kubernetes.core.k8s:
+      api_version: v1
+      state: present
+      definition: "{{ lookup('file', 'custom-resources/influxdb/influxdb-secrets.yaml') | from_yaml }}"
       namespace: monitoring'
   - name: Create influxdb deployment
     kubernetes.core.k8s:
       api_version: v1
       state: present
-      definition: "{{ lookup('file', 'custom-resources/influxdb-deployment.yaml') | from_yaml }}"
+      definition: "{{ lookup('file', 'custom-resources/influxdb/influxdb-deployment.yaml') | from_yaml }}"
       namespace: monitoring'
   - name: Create grafana deployment
     kubernetes.core.k8s:
       api_version: v1
       state: present
-      definition: "{{ lookup('file', 'custom-resources/grafana-deployment.yaml') | from_yaml }}"
+      definition: "{{ lookup('file', 'custom-resources/grafana/grafana-deployment.yaml') | from_yaml }}"
       namespace: monitoring'
   - name: Create grafana service
     kubernetes.core.k8s:
       api_version: v1
       state: present
-      definition: "{{ lookup('file', 'custom-resources/grafana-service.yaml') | from_yaml }}"
+      definition: "{{ lookup('file', 'custom-resources/grafana/grafana-service.yaml') | from_yaml }}"
       namespace: monitoring'
   - name: Create telegraf config configmap
     kubernetes.core.k8s:
       api_version: v1
       state: present
-      definition: "{{ lookup('file', 'custom-resources/telegraf-config-configmap.yaml') | from_yaml }}"
+      definition: "{{ lookup('file', 'custom-resources/telegraf/telegraf-config-configmap.yaml') | from_yaml }}"
       namespace: monitoring'
   - name: Create telegraf deployment
     kubernetes.core.k8s:
       api_version: v1
       state: present
-      definition: "{{ lookup('file', 'custom-resources/telegraf-deployment.yaml') | from_yaml }}"
+      definition: "{{ lookup('file', 'custom-resources/telegraf/telegraf-deployment.yaml') | from_yaml }}"
       namespace: monitoring'

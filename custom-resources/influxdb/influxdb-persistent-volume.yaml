@@ -8,5 +8,6 @@ spec:
     storage: 20Gi
   accessModes:
     - ReadWriteOnce
+  storageClassName: local-path
   hostPath:
-    path: "/home/{{ ansible_user }}/influxdb/data"
+    path: "/home/{{ ansible_user }}/influxdb/data/"

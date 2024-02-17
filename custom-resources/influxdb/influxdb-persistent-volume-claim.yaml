@@ -9,7 +9,5 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi
-  selector:
-    matchLabels:
-      app: influxdb
+      storage: 20Gi
+  storageClassName: local-path
