@@ -6,6 +6,7 @@
     apt:
       name:
         - python3-pip
+        - snap
       update_cache: yes
   - name: install pip pre-requisites
     pip:
@@ -56,6 +57,12 @@
       state: present
       definition: "{{ lookup('file', 'custom-resources/influxdb/influxdb-deployment.yaml') | from_yaml }}"
       namespace: monitoring'
+  - name: Create influxdb service
+    kubernetes.core.k8s:
+      api_version: v1
+      state: present
+      definition: "{{ lookup('file', 'custom-resources/influxdb/influxdb-service.yaml') | from_yaml }}"
+      namespace: monitoring'
   - name: Create grafana deployment
     kubernetes.core.k8s:
       api_version: v1
@@ -80,3 +87,20 @@
       state: present
       definition: "{{ lookup('file', 'custom-resources/telegraf/telegraf-deployment.yaml') | from_yaml }}"
       namespace: monitoring'
+  - name: Install Helm
+    become: yes
+    snap:
+      name:
+        - helm
+      classic: yes
+      state: present
+  - name: Add stable chart repo
+    kubernetes.core.helm_repository:
+      name: stable
+      repo_url: "https://kubernetes.github.io/ingress-nginx"
+  - name: Deploy Nginx Ingress
+    kubernetes.core.helm:
+      name: ingress-nginx
+      chart_ref: stable/ingress-nginx
+      release_namespace: ingress
+      create_namespace: true
