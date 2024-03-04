@@ -14,6 +14,16 @@
         - openshift
         - pyyaml
         - kubernetes
+  - name: install helm
+    become: yes
+    snap:
+      name:
+        - helm
+      classic: true
+  - name: install Helm Diff Plugin
+    kubernetes.core.helm_plugin:
+      plugin_path: https://github.com/databus23/helm-diff
+      state: present
   - name: copy kubeconfig to home directory
     become: yes
     ansible.builtin.copy:
@@ -21,86 +31,38 @@
       dest: /home/{{ ansible_user }}/.kube/config 
       remote_src: true
       owner: '{{ ansible_user }}'
-      mode: '0644'
+      mode: '0700'
   - name: Create monitoring namespace
     kubernetes.core.k8s:
       name: monitoring
       api_version: v1
       kind: Namespace
       state: present
-  - name: Create Volume directory
-    ansible.builtin.file:
-      path: /home/{{ ansible_user }}/influxdb/data
-      state: directory
-      mode: "0777"
-  - name: Create influxdb persistent volume 
-    kubernetes.core.k8s:
-      api_version: v1
-      state: present
-      definition: "{{ lookup('file', 'custom-resources/influxdb/influxdb-persistent-volume.yaml') | from_yaml }}"
-      namespace: monitoring'
-  - name: Create influxdb persistent volume claim
-    kubernetes.core.k8s:
-      api_version: v1
-      state: present
-      definition: "{{ lookup('file', 'custom-resources/influxdb/influxdb-persistent-volume-claim.yaml') | from_yaml }}"
-      namespace: monitoring'
-  - name: Create influxdb secrets
-    kubernetes.core.k8s:
-      api_version: v1
-      state: present
-      definition: "{{ lookup('file', 'custom-resources/influxdb/influxdb-secrets.yaml') | from_yaml }}"
-      namespace: monitoring'
-  - name: Create influxdb deployment
-    kubernetes.core.k8s:
-      api_version: v1
-      state: present
-      definition: "{{ lookup('file', 'custom-resources/influxdb/influxdb-deployment.yaml') | from_yaml }}"
-      namespace: monitoring'
-  - name: Create influxdb service
-    kubernetes.core.k8s:
-      api_version: v1
-      state: present
-      definition: "{{ lookup('file', 'custom-resources/influxdb/influxdb-service.yaml') | from_yaml }}"
-      namespace: monitoring'
-  - name: Create grafana deployment
-    kubernetes.core.k8s:
-      api_version: v1
-      state: present
-      definition: "{{ lookup('file', 'custom-resources/grafana/grafana-deployment.yaml') | from_yaml }}"
-      namespace: monitoring'
-  - name: Create grafana service
-    kubernetes.core.k8s:
-      api_version: v1
-      state: present
-      definition: "{{ lookup('file', 'custom-resources/grafana/grafana-service.yaml') | from_yaml }}"
-      namespace: monitoring'
-  - name: Create telegraf config configmap
-    kubernetes.core.k8s:
-      api_version: v1
-      state: present
-      definition: "{{ lookup('file', 'custom-resources/telegraf/telegraf-config-configmap.yaml') | from_yaml }}"
-      namespace: monitoring'
-  - name: Create telegraf deployment
-    kubernetes.core.k8s:
-      api_version: v1
-      state: present
-      definition: "{{ lookup('file', 'custom-resources/telegraf/telegraf-deployment.yaml') | from_yaml }}"
-      namespace: monitoring'
-  - name: Install Helm
-    become: yes
-    snap:
-      name:
-        - helm
-      classic: yes
-      state: present
-  - name: Add stable chart repo
+  - name: Add stable grafana chart repo
     kubernetes.core.helm_repository:
-      name: stable
-      repo_url: "https://kubernetes.github.io/ingress-nginx"
-  - name: Deploy Nginx Ingress
+      name: grafana
+      repo_url: "https://grafana.github.io/helm-charts"
+  - name: Add stable influxdb chart repo
+    kubernetes.core.helm_repository:
+      name: influxdata
+      repo_url: "https://helm.influxdata.com/"
+  - name: Update Helm Repos
+    command: helm repo update
+  - name: Deploy latest version of Grafana chart inside monitoring namespace with values
     kubernetes.core.helm:
-      name: ingress-nginx
-      chart_ref: stable/ingress-nginx
-      release_namespace: ingress
-      create_namespace: true
+      name: grafana
+      chart_ref: grafana/grafana
+      release_namespace: monitoring
+      values:
+        replicas: 1
+        ingress:
+          enabled: true
+  - name: Deploy latest version of Influxdb2 chart inside monitoring namespace with values
+    kubernetes.core.helm:
+      name: influxdb
+      chart_ref: influxdata/influxdb2
+      release_namespace: monitoring
+      values:
+        replicas: 1
+        ingress:
+          enabled: true
