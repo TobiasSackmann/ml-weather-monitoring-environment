@@ -57,12 +57,26 @@
         replicas: 1
         ingress:
           enabled: true
+          hosts:
+            - tig.grafana.local
+          path: /
   - name: Deploy latest version of Influxdb2 chart inside monitoring namespace with values
     kubernetes.core.helm:
       name: influxdb
       chart_ref: influxdata/influxdb2
       release_namespace: monitoring
       values:
-        replicas: 1
         ingress:
           enabled: true
+          hostname: tig.influxdb.local
+          className: traefik
+          path: /
+        service:
+          type: NodePort
+          nodePort: 30000
+        adminUser:
+          organization: "influxdata"
+          bucket: "default"
+          user: "admin"
+          password: "password"
+          token: "securetoken"
