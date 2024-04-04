@@ -6,3 +6,4 @@ terraform.*
 *.csv
 inventory.yml
 custom-resources/test
+data/*
