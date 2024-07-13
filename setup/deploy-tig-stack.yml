@@ -60,7 +60,7 @@
           hosts:
             - tig.grafana.local
           path: /
-  - name: Deploy latest version of Influxdb2 chart inside monitoring namespace with values
+  - name: Deploy and configure latest version of Influxdb2 chart
     kubernetes.core.helm:
       name: influxdb
       chart_ref: influxdata/influxdb2
@@ -72,7 +72,7 @@
           className: traefik
           path: /
         service:
-          type: NodePort
+          type: NodePort #ClusterIP 
           nodePort: 30000
         adminUser:
           organization: "influxdata"
@@ -80,3 +80,28 @@
           user: "admin"
           password: "password"
           token: "securetoken"
+  - name: Deploy and configure latest version of Telegraf chart
+    kubernetes.core.helm:
+      name: telegraf
+      chart_ref: influxdata/telegraf
+      release_namespace: monitoring
+      values:
+        service:
+          enabled: false
+        config:
+          inputs:
+            - http:
+                urls:
+                  - "https://dwd.api.proxy.bund.dev/v30/stationOverviewExtended?stationIds=10838,10840"
+                method: "GET"
+                interval: "10s"
+                response_timeout: "10s"
+                data_format: "json"
+          outputs:
+            - influxdb_v2:
+                urls:
+                  - " "
+                organization: "influxdata"
+                bucket: "default"
+                token: "securetoken"
+
