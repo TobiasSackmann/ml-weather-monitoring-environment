@@ -97,10 +97,13 @@
                 interval: "10s"
                 response_timeout: "10s"
                 data_format: "json"
+          #outputs:
+          #  - file:
+          #      files = ["stdout"]
           outputs:
             - influxdb_v2:
                 urls:
-                  - " "
+                  - "http://influxdb-influxdb2.monitoring.svc.cluster.local:80"
                 organization: "influxdata"
                 bucket: "default"
                 token: "securetoken"
