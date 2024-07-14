@@ -111,6 +111,7 @@
                 organization: "influxdata"
                 bucket: "default"
                 token: "securetoken"
+  # Due to ressource limitations on the test environment persistence is partly disabled.
   - name: Install mlflow from bitnahmi helm chart
     kubernetes.core.helm:
       name: mlflow
@@ -122,9 +123,10 @@
           enabled: false
         postgresql:
           enabled: true
-        persistence:
-          enabled: false
-        service:
-          ports:
-            http: 30001
-
+        tracking:
+          service:
+            ports:
+              http: 30001 
+          auth:
+            username: user
+            password: password
