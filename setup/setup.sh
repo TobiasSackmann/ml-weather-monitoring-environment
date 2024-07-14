@@ -1,24 +1,37 @@
 #!/bin/bash
 
-wait_for_dpkg_lock() {
+wait_for_remote_dpkg_lock() {
+    local remote_user="$1"
+    local remote_host="$2"
     local lock_file="/var/lib/dpkg/lock-frontend"
-    echo "Waiting for dpkg lock to be released..."
+    local stale_lock_removal_attempts=3
+    local attempt=1
 
-    # Loop until the lock file is not found
-    while [ -e "$lock_file" ]; do
-        # Optionally, check if the lock file is held by a process that no longer exists
-        if [ -f "$lock_file" ]; then
-            pid=$(lsof -t "$lock_file")
-            if [ -z "$pid" ] || ! ps -p "$pid" > /dev/null 2>&1; then
-                echo "Stale lock file found, removing it..."
-                sudo rm -f "$lock_file"
-            fi
-        fi
-        echo "Lock file is present. Waiting..."
+    echo "Waiting for dpkg lock to be released on ${remote_host}..."
+
+    while ssh "${remote_user}@${remote_host}" "sudo fuser ${lock_file}" >/dev/null 2>&1; do
+        echo "Lock file is present on ${remote_host}. Waiting..."
         sleep 2
+
+        if [ "$attempt" -ge "$stale_lock_removal_attempts" ]; then
+            echo "Checking for stale lock on ${remote_host}..."
+
+            pid=$(ssh "${remote_user}@${remote_host}" "sudo fuser -u ${lock_file} 2>/dev/null")
+            if [ -n "$pid" ]; then
+                if ! ssh "${remote_user}@${remote_host}" "ps -p ${pid} > /dev/null 2>&1"; then
+                    echo "Stale lock found on ${remote_host}. Removing..."
+                    ssh "${remote_user}@${remote_host}" "sudo rm -f ${lock_file}"
+                    break
+                fi
+            fi
+
+            attempt=0 # Reset attempts after checking for stale lock
+        fi
+
+        attempt=$((attempt + 1))
     done
 
-    echo "dpkg lock released. Continuing..."
+    echo "dpkg lock released on ${remote_host}. Continuing..."
 }
 
 # prepare new setup
@@ -26,19 +39,11 @@ rm -f host_ip.csv
 
 # start testbed creation by creating VMs with terraform
 terraform -chdir=../terraform/ init
-terraform -chdir=../terraform/ apply -auto-approve
+terraform -chdir=../terraform/ apply -auto-approve > /dev/null
 
 # Use terraform outputs to generate Anisble inventory
-traffichost1_ip=$(terraform output -state=../terraform/terraform.tfstate traffic-host1_ip)
-traffichost2_ip=$(terraform output -state=../terraform/terraform.tfstate traffic-host2_ip)
 k3s_ip=$(terraform output -state=../terraform/terraform.tfstate k3s_ip)
-
-traffichost1_name=$(terraform output -state=../terraform/terraform.tfstate traffic-host1_name)
-traffichost2_name=$(terraform output -state=../terraform/terraform.tfstate traffic-host2_name)
 k3s_name=$(terraform output -state=../terraform/terraform.tfstate k3s_name)
-
-echo "${traffichost1_name},${traffichost1_ip}" >> host_ip.csv
-echo "${traffichost2_name},${traffichost2_ip}" >> host_ip.csv
 echo "${k3s_name},${k3s_ip}" >> host_ip.csv
 
 # Create Inventory from Terraform Output
@@ -49,8 +54,8 @@ python3 parse_inventory.py
 #echo 'Sleep for 100 seconds to ensure k3s host is ready'
 #sleep 100s
 
-echo 'Waiting Until k3s machine is ready'
-wait_for_dpkg_lock()
+#echo 'Waiting Until k3s machine is ready'
+#wait_for_remote_dpkg_lock "tobias" $k3s_ip # TODO: get from vault
 
 # install k3s on the k3s host
 echo 'Install k3s'

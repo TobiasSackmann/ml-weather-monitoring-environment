@@ -1,6 +1,7 @@
 ---
 - hosts: k3s_cluster
   tasks:
+  # retries are required to ensure everything is ready after k3s installation.
   - name: install apt pre-requisites
     become: yes
     apt:
@@ -8,6 +9,8 @@
         - python3-pip
         - snap
       update_cache: yes
+    retries: 10
+    delay: 30
   - name: install pip pre-requisites
     pip:
       name:
@@ -42,10 +45,14 @@
     kubernetes.core.helm_repository:
       name: grafana
       repo_url: "https://grafana.github.io/helm-charts"
-  - name: Add stable influxdb chart repo
+  - name: Add stable influxdata chart repo
     kubernetes.core.helm_repository:
       name: influxdata
       repo_url: "https://helm.influxdata.com/"
+  - name: Add bitnami chart repo
+    kubernetes.core.helm_repository:
+      name: bitnami
+      repo_url: "https://charts.bitnami.com/bitnami"
   - name: Update Helm Repos
     command: helm repo update
   - name: Deploy latest version of Grafana chart inside monitoring namespace with values
@@ -72,7 +79,7 @@
           className: traefik
           path: /
         service:
-          type: NodePort #ClusterIP 
+          type: ClusterIP 
           nodePort: 30000
         adminUser:
           organization: "influxdata"
@@ -97,9 +104,6 @@
                 interval: "10s"
                 response_timeout: "10s"
                 data_format: "json"
-          #outputs:
-          #  - file:
-          #      files = ["stdout"]
           outputs:
             - influxdb_v2:
                 urls:
@@ -107,4 +111,20 @@
                 organization: "influxdata"
                 bucket: "default"
                 token: "securetoken"
+  - name: Install mlflow from bitnahmi helm chart
+    kubernetes.core.helm:
+      name: mlflow
+      chart_ref: bitnami/mlflow
+      release_namespace: machinelearning
+      create_namespace: true
+      values:
+        minio:
+          enabled: false
+        postgresql:
+          enabled: true
+        persistence:
+          enabled: false
+        service:
+          ports:
+            http: 30001
 
