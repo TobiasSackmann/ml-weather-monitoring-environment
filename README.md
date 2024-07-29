@@ -32,3 +32,9 @@ Usage
     * ```shell
         ansible-playbook deploy-tig-stack.yml -i ./inventory.yml
         ```
+* Create/Train your Machine Learnign Model.
+    * You should first run the feature selektion notebook from within the notebooks direcory.
+    * Then run your desired notebook for training a model.
+    * Put it in a docker container
+    * Install it in the kubernetes cluster
+    * Visualize your raw data as well as the machine learning results in Grafana
