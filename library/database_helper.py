@@ -7,18 +7,19 @@ def query_data(
     org = "influxdata",
     bucket = "default",
     query = '',
+    start_time = "2024-07-28T12:00:00Z",
     field_list = None):
 
     if query == '' or query == None:
         query = f'''
         from(bucket: "{bucket}") 
-        |> range(start: -28h)
+        |> range(start: {start_time})
         |> filter(fn: (r) => r["_measurement"] == "http")
         '''
     if field_list is not None:
         list_length = len(field_list)
         query += '|> filter(fn: (r) =>'
-        for counter, field in enumerate(field_list): #
+        for counter, field in enumerate(field_list):
             query += f' r["_field"] == "{field}"'
             if counter < list_length -1:
                 query += ' or'

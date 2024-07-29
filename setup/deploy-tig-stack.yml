@@ -123,6 +123,9 @@
           enabled: false
         postgresql:
           enabled: true
+          auth:
+            username: kjaEftBIal
+            password: s5GHwTzKip
         tracking:
           service:
             ports:
@@ -130,3 +133,5 @@
           auth:
             username: user
             password: password
+          ingress:
+            enabled: true
