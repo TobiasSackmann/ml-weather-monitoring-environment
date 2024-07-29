@@ -5,3 +5,15 @@ terraform.*
 *.log
 *.csv
 inventory.yml
+custom-resources/test
+data/*
+**/0/*
+**/1/*
+**/2/*
+**/3/*
+**/4/*
+**/5/*
+**/6/*
+**/7/*
+*.pkl
+**/__pycache__/**
