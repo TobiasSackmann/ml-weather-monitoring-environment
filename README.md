@@ -18,6 +18,7 @@ Requirements
     * pandas
     * matplotlib
     * seaborn
+    * numpy
 
 Usage
 -----
@@ -31,6 +32,12 @@ Usage
         ```
     * ```shell
         ansible-playbook deploy-tig-stack.yml -i ./inventory.yml
+        ```
+* In case you do not have DNS in you network you need to amend you /etc/hosts file by adding the following entries. 1.2.3.4 should be replaced by the ip of your new virtual VM.
+    * ```shell
+        1.2.3.4    tig.grafana.local
+        1.2.3.4    tig.influxdb.local
+        1.2.3.4    mlflow.local
         ```
 * Create/Train your Machine Learnign Model.
     * You should first run the feature selektion notebook from within the notebooks direcory.
