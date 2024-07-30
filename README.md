@@ -19,6 +19,7 @@ Requirements
     * matplotlib
     * seaborn
     * numpy
+    * tensorflow
 
 Usage
 -----
