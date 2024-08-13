@@ -17,3 +17,4 @@ data/*
 **/7/*
 *.pkl
 **/__pycache__/**
+**/mlruns/*
