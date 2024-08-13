@@ -7,7 +7,7 @@ def query_data(
     org = "influxdata",
     bucket = "default",
     query = '',
-    start_time = "2024-08-10T12:00:00Z",
+    start_time = "2024-08-05T12:00:00Z",
     field_list = None):
 
     if query == '' or query == None:
