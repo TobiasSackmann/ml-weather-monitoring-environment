@@ -11,7 +11,8 @@ def query_data(
     query = '',
     start_time = '2024-07-28T12:00:00Z',
     end_time = '',
-    field_list = None):
+    field_list = None,
+    query_range = 5):
 
     if end_time == '':
         current_datetime = datetime.now(timezone.utc) #datetime.utcnow()
@@ -21,7 +22,7 @@ def query_data(
     query_api = client.query_api()
 
     dfs = []
-    date_chunks = split_date_range(start_time, end_time)
+    date_chunks = split_date_range(start_time, end_time, query_range)
     for i, (start, end) in enumerate(date_chunks):
         query = build_query(bucket, start, end, field_list)
         print('Executing Query ' + str(i + 1) + ' from ' +  str(start) + ' to ' + str(end))
@@ -49,7 +50,7 @@ def build_query(bucket, start_time, end_time, field_list):
     return query
 
 
-def split_date_range(start_date_str, end_date_str):
+def split_date_range(start_date_str, end_date_str, query_range):
     # Convert strings to datetime objects
     start_date = datetime.strptime(start_date_str, "%Y-%m-%dT%H:%M:%SZ") # %Y-%m-%d
     end_date = datetime.strptime(end_date_str, "%Y-%m-%dT%H:%M:%SZ") # %Y-%m-%d
@@ -58,7 +59,7 @@ def split_date_range(start_date_str, end_date_str):
     duration = end_date - start_date
 
     # Check if the duration is longer than 1 week
-    time_delta = timedelta(days=5)
+    time_delta = timedelta(days=query_range)
     
     if duration <= time_delta:
         # If duration is less than or equal to one week, return the range as is
