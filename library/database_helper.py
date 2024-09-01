@@ -23,19 +23,20 @@ def query_data(
     dfs = []
     date_chunks = split_date_range(start_time, end_time)
     for i, (start, end) in enumerate(date_chunks):
-        query = build_query(bucket, query, start, end, field_list)
-        print('Executing Query ' + str(i + 1) + ' (Maximum 5 days)')
-        dfs.append(query_api.query_data_frame(query, org=org))
+        query = build_query(bucket, start, end, field_list)
+        print('Executing Query ' + str(i + 1) + ' from ' +  str(start) + ' to ' + str(end))
+        df = query_api.query_data_frame(query, org=org)
+        print(df.shape)
+        dfs.append(df)
 
     return pd.concat(dfs, ignore_index=True)
 
-def build_query(bucket, query, start_time, end_time, field_list):
-    if query == '' or query == None:
-        query = f'''
-        from(bucket: "{bucket}") 
-        |> range(start: {start_time.strftime("%Y-%m-%dT%H:%M:%SZ")}, stop: {end_time.strftime("%Y-%m-%dT%H:%M:%SZ")})
-        |> filter(fn: (r) => r["_measurement"] == "http")
-        '''
+def build_query(bucket, start_time, end_time, field_list):
+    query = f'''
+    from(bucket: "{bucket}") 
+    |> range(start: {start_time.strftime("%Y-%m-%dT%H:%M:%SZ")}, stop: {end_time.strftime("%Y-%m-%dT%H:%M:%SZ")})
+    |> filter(fn: (r) => r["_measurement"] == "http")
+    '''
     if field_list is not None:
         list_length = len(field_list)
         query += '|> filter(fn: (r) =>'
