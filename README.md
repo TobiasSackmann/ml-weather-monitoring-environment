@@ -4,6 +4,7 @@ Repository for creating a Kubernetes based monitoring environment for DWD weathe
 
 Requirements
 ------------
+* A Kubernetes Cluster. This Repository is supposed to be used in combination with my [proxmox-k3s repo](https://github.com/TobiasSackmann/proxmox-k3s), but can easily be amended to be used with any kubernetes cluster.
 * Python3 is locally installed with packages
     * jinja2
     * mlflow
