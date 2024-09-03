@@ -1,14 +1,9 @@
 # Machine Learning Weather Monitoring Environment
 
-Terraform Repository for creating a Proxmox based virtual network with monitoring weather data.
+Repository for creating a Kubernetes based monitoring environment for DWD weather data.
 
 Requirements
 ------------
-* Terraform is installed on your target host
-* Proxmox is installed on your target host
-* Initial Proxmox configurations have been applied like creating an API Token
-* An Cloud Init capable image is available on the Proxmox host. Within this repsoitory code it is called ubuntu2204-ci.
-* An OVS Bridge with name vmbr10 with internet access is available on the Proxmox host.
 * Python3 is locally installed with packages
     * jinja2
     * mlflow
@@ -23,16 +18,19 @@ Requirements
 
 Usage
 -----
-* After cloning this repository, you should update the modules with `git submodule update --init --recursive`
-* Create your .tfvars file with the variables defined in the terraform/variables.tf
-* Execute the setup.sh script from the setup direcory. It might be necessary to execute the fololowing steps manually, as sometimes the virtual machine is not directly ready after being created.
-    * ```shell
-        pushd ../k3s-ansible/
-        ansible-playbook ./playbook/site.yml -i ../setup/inventory.yml
-        popd 
+* Execute the setup.sh script from the setup direcory.
+    * First Create a inventory.yml. It should look like this example.
+        ```shell
+        ---
+        k3s_cluster:
+        children:
+            server:
+            hosts:
+                192.168.178.196
         ```
-    * ```shell
-        ansible-playbook deploy-tig-stack.yml -i ./inventory.yml
+    * Execute the install playbook.
+        ```shell
+        ansible-playbook install.yml -i ./inventory.yml
         ```
 * In case you do not have DNS in you network you need to amend you /etc/hosts file by adding the following entries. 1.2.3.4 should be replaced by the ip of your new virtual VM.
     ```shell
