@@ -32,7 +32,7 @@ Usage
         ```shell
         ansible-playbook install.yml -i ./inventory.yml
         ```
-* In case you do not have DNS in you network you need to amend you /etc/hosts file by adding the following entries. 1.2.3.4 should be replaced by the ip of your new virtual VM.
+* In case you do not have DNS in you network, you need to amend your /etc/hosts file by adding the following entries. 1.2.3.4 should be replaced by the ip of your new virtual VM.
     ```shell
     1.2.3.4    tig.grafana.local
     1.2.3.4    tig.influxdb.local
