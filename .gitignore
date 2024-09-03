@@ -18,3 +18,4 @@ data/*
 *.pkl
 **/__pycache__/**
 **/mlruns/*
+*.keras
