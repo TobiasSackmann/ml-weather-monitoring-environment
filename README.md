@@ -35,14 +35,21 @@ Usage
         ansible-playbook deploy-tig-stack.yml -i ./inventory.yml
         ```
 * In case you do not have DNS in you network you need to amend you /etc/hosts file by adding the following entries. 1.2.3.4 should be replaced by the ip of your new virtual VM.
-    * ```shell
-        1.2.3.4    tig.grafana.local
-        1.2.3.4    tig.influxdb.local
-        1.2.3.4    mlflow.local
-        ```
+    ```shell
+    1.2.3.4    tig.grafana.local
+    1.2.3.4    tig.influxdb.local
+    1.2.3.4    mlflow.local
+    ```
 * Create/Train your Machine Learnign Model.
-    * You should first run the feature selektion notebook from within the notebooks direcory.
-    * Then run your desired notebook for training a model.
-    * Put it in a docker container
+    * You should first run the feature selektion notebook(feature_selection.ipynb) from within the notebooks direcory.
+    * Then run your desired notebook for training a model. For example timeseries_forecast_approach_evaluation.ipynb
+    * Put it in a docker container. For tensorflow/keras model you can use the dockerfile ins the docker directory. Example:
+        ```shell
+        docker build -t weather-forecast .
+        ```
     * Install it in the kubernetes cluster
     * Visualize your raw data as well as the machine learning results in Grafana
+
+
+
+
