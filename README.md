@@ -48,6 +48,17 @@ Usage
     * Install it in the kubernetes cluster
     * Visualize your raw data as well as the machine learning results in Grafana
 
+Technologies used
+-----
 
-
-
+* Kubernetes
+* Docker
+* Ansible
+* Helm (within Ansible)
+* Python/Jupyter Notebooks
+* Tensorflow
+* Shell
+* InfluxDB
+* Telegraf
+* Grafana
+* MLFlow
