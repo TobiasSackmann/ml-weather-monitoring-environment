@@ -8,3 +8,4 @@ inventory.yml
 **/__pycache__/**
 **/mlruns/*
 *.keras
+*.pkl
