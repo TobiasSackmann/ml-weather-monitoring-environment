@@ -6,7 +6,7 @@ WORKDIR /models
 
 # Copy your TensorFlow model (saved_model format) to the container
 # Replace 'my_model' with your actual model directory
-COPY waether-timeseries-forecasts.h5 /models/1/waether-timeseries-forecasts.h5
+COPY waether-timeseries-forecasts/ /models/1/
 
 # Set the environment variable for TensorFlow Serving to load the model
 ENV MODEL_NAME=waether-timeseries-forecast
@@ -15,4 +15,4 @@ ENV MODEL_NAME=waether-timeseries-forecast
 EXPOSE 8501
 
 # Start TensorFlow Serving and serve the model
-ENTRYPOINT ["/usr/bin/tensorflow_model_server", "--model_base_path=/models/", "--rest_api_port=8501", "--model_name=waether-timeseries-forecasts.h5"]
+ENTRYPOINT ["/usr/bin/tensorflow_model_server", "--model_base_path=/models/", "--rest_api_port=8501", "--model_name=waether-timeseries-forecasts"]
