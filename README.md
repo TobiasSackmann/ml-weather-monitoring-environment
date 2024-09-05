@@ -49,6 +49,12 @@ Usage
     * Install it in the kubernetes cluster
     * Visualize your raw data as well as the machine learning results in Grafana
 
+Testing
+-----
+```shell
+docker run -p 8501:8501 weather-forecast
+```
+
 Technologies used
 -----
 

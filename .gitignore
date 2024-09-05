@@ -9,3 +9,5 @@ inventory.yml
 **/mlruns/*
 *.keras
 *.pkl
+**/docker/waether-timeseries-forecasts/*
+*.h5
