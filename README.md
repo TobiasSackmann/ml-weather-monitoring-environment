@@ -39,7 +39,7 @@ Usage
     1.2.3.4    tig.influxdb.local
     1.2.3.4    mlflow.local
     ```
-* Create/Train your Machine Learnign Model.
+* Create/Train your Machine Learning Model.
     * You should first run the feature selektion notebook(feature_selection.ipynb) from within the notebooks direcory.
     * Then run your desired notebook for training a model. For example timeseries_forecast_approach_evaluation.ipynb
     * Put it in a docker container. For tensorflow/keras model you can use the dockerfile ins the docker directory. Example:
