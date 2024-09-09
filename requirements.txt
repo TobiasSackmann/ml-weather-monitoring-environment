@@ -1,2 +1,11 @@
 tensorflow=2,17
 wrapt==1.14.1
+jinja2
+mlflow
+influxdb_client
+pickle
+scikit-learn
+pandas
+matplotlib
+seaborn
+numpy
