@@ -167,10 +167,21 @@
         name: docker
         enabled: yes
         state: started
-    - name: Starte Docker-Container
-      docker_container:
+    - name: Ensure the Docker registry container is running
+      community.docker.docker_container:
         name: registry
-        image: registry:latest
+        image: registry:2
         state: started
-        ports:
+        restart_policy: always
+        published_ports:
           - "5000:5000"
+    - name: Configure Docker to use insecure registry
+      template:
+        src: daemon.json.j2
+        dest: /etc/docker/daemon.json
+        mode: '0644'
+    - name: Restart Docker to apply changes
+      systemd:
+        name: docker
+        state: restarted
+        enabled: yes

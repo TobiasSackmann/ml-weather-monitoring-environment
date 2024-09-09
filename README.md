@@ -42,12 +42,23 @@ Usage
 * Create/Train your Machine Learning Model.
     * You should first run the feature selektion notebook(feature_selection.ipynb) from within the notebooks direcory.
     * Then run your desired notebook for training a model. For example timeseries_forecast_approach_evaluation.ipynb
-    * Put it in a docker container. For tensorflow/keras model you can use the dockerfile ins the docker directory. Example:
-        ```shell
-        docker build -t weather-forecast .
-        ```
-    * Install it in the kubernetes cluster
-    * Visualize your raw data as well as the machine learning results in Grafana
+* Put it in a docker container. For tensorflow/keras model you can use the dockerfile ins the docker directory. Example:
+    ```shell
+    docker build -t weather-forecast .
+    ```
+* Install it in the kubernetes cluster
+    * Provide your images to the local registry which was installed by the install.yaml playbook.
+    ```shell
+    docker save -o weather-forecast.tar weather-forecast
+    scp weather-forecast.tar YOUR_USER@192.168.178.196:/home/YOUR_USER/
+    ssh YOUR_USER@YOUR_VM_IP
+    sudo docker load -i ./weather-forecast.tar
+    sudo docker tag weather-forecast YOUR_VM_IP:5000/weather-forecast
+    sudo docker push YOUR_VM_IP:5000/weather-forecast
+    ```
+* Visualize your raw data as well as the machine learning results in Grafana
+
+
 
 Testing
 -----
@@ -61,6 +72,7 @@ Technologies used
 * Kubernetes
 * Docker
 * Ansible
+* Jinja
 * Helm (within Ansible)
 * Python/Jupyter Notebooks
 * Tensorflow
