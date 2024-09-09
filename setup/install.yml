@@ -135,3 +135,42 @@
             password: password
           ingress:
             enabled: true
+- hosts: all
+  become: true
+  tasks:
+    - name: Install docker related packages
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - software-properties-common
+    - name: Add GPG-Key hinzu
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+    - name: add Docker Repository
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
+    - name: Update Packages List
+      apt:
+        update_cache: yes
+    - name: Install Docker
+      apt:
+        name: docker-ce
+        state: present
+    - name: Ensure Docker service is running
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+    - name: Starte Docker-Container
+      docker_container:
+        name: registry
+        image: registry:latest
+        state: started
+        ports:
+          - "5000:5000"
