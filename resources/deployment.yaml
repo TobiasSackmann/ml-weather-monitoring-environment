@@ -1,0 +1,20 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: weather-forecast
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: weather-forecast
+  template:
+    metadata:
+      labels:
+        app: weather-forecast
+    spec:
+      containers:
+      - name: weather-forecast
+        image: localhost:5000/weather-forecast:latest
+        ports:
+        - containerPort: 8501

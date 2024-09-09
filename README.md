@@ -41,24 +41,27 @@ Usage
     ```
 * Create/Train your Machine Learning Model.
     * You should first run the feature selektion notebook(feature_selection.ipynb) from within the notebooks direcory.
-    * Then run your desired notebook for training a model. For example timeseries_forecast_approach_evaluation.ipynb
+    * Then run your desired notebook for training a model. For example multi-output_timeseries_forecast.ipynb.ipynb. All steps below will assume you use this notebook. You will need to adapt command and file if you use another notebook/model.
 * Put it in a docker container. For tensorflow/keras model you can use the dockerfile ins the docker directory. Example:
     ```shell
     docker build -t weather-forecast .
     ```
-* Install it in the kubernetes cluster
+* Install it in the kubernetes cluster. The steps below provide an example for 
     * Provide your images to the local registry which was installed by the install.yaml playbook.
-    ```shell
-    docker save -o weather-forecast.tar weather-forecast
-    scp weather-forecast.tar YOUR_USER@192.168.178.196:/home/YOUR_USER/
-    ssh YOUR_USER@YOUR_VM_IP
-    sudo docker load -i ./weather-forecast.tar
-    sudo docker tag weather-forecast YOUR_VM_IP:5000/weather-forecast
-    sudo docker push YOUR_VM_IP:5000/weather-forecast
-    ```
+        ```shell
+        docker save -o weather-forecast.tar weather-forecast
+        scp weather-forecast.tar YOUR_USER@192.168.178.196:/home/YOUR_USER/
+        ssh YOUR_USER@YOUR_VM_IP
+        sudo docker load -i ./weather-forecast.tar
+        sudo docker tag weather-forecast YOUR_VM_IP:5000/weather-forecast
+        sudo docker push YOUR_VM_IP:5000/weather-forecast
+        ```
+    * Install the service and the deployment.
+        ```shell
+        kubectl apply -f deployment.yaml
+        kubectl apply -f service.yaml
+        ```
 * Visualize your raw data as well as the machine learning results in Grafana
-
-
 
 Testing
 -----
