@@ -38,6 +38,7 @@ Usage
     1.2.3.4    tig.grafana.local
     1.2.3.4    tig.influxdb.local
     1.2.3.4    mlflow.local
+    1.2.3.4    apache-airflow.local
     ```
 * Create/Train your Machine Learning Model.
     * You should first run the feature selektion notebook(feature_selection.ipynb) from within the notebooks direcory.

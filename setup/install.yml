@@ -1,5 +1,9 @@
 ---
 - hosts: k3s_cluster
+  vars:
+    local_source_dir: ../dag/  # Change to your local directory containing files
+    pv_target_dir: /data/pv001  # Path on the host where PV will be mounted
+    namespace: airflow  # The namespace where the PVC should be created
   tasks:
   # retries are required to ensure everything is ready after k3s installation.
   - name: install apt pre-requisites
@@ -49,7 +53,11 @@
     kubernetes.core.helm_repository:
       name: influxdata
       repo_url: "https://helm.influxdata.com/"
-  - name: Add bitnami chart repo
+  - name: Add airflow chart repo
+    kubernetes.core.helm_repository:
+      name: apache-airflow
+      repo_url: "https://airflow.apache.org/"
+  - name: Add apache bitnami chart repo
     kubernetes.core.helm_repository:
       name: bitnami
       repo_url: "https://charts.bitnami.com/bitnami"
@@ -135,53 +143,134 @@
             password: password
           ingress:
             enabled: true
-- hosts: all
-  become: true
-  tasks:
-    - name: Install docker related packages
-      apt:
-        name: "{{ item }}"
-        state: present
-      loop:
-        - apt-transport-https
-        - ca-certificates
-        - curl
-        - software-properties-common
-    - name: Add GPG-Key hinzu
-      apt_key:
-        url: https://download.docker.com/linux/ubuntu/gpg
-        state: present
-    - name: add Docker Repository
-      apt_repository:
-        repo: deb https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
-        state: present
-    - name: Update Packages List
-      apt:
-        update_cache: yes
-    - name: Install Docker
-      apt:
-        name: docker-ce
-        state: present
-    - name: Ensure Docker service is running
-      systemd:
-        name: docker
-        enabled: yes
-        state: started
-    - name: Ensure the Docker registry container is running
-      community.docker.docker_container:
-        name: registry
-        image: registry:2
-        state: started
-        restart_policy: always
-        published_ports:
-          - "5000:5000"
-    - name: Configure Docker to use insecure registry
-      template:
-        src: daemon.json.j2
-        dest: /etc/docker/daemon.json
-        mode: '0644'
-    - name: Restart Docker to apply changes
-      systemd:
-        name: docker
-        state: restarted
-        enabled: yes
+  - name: Install docker related packages
+    become: yes
+    apt:
+      name: "{{ item }}"
+      state: present
+    loop:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
+  - name: Add GPG-Key hinzu
+    become: yes
+    apt_key:
+      url: https://download.docker.com/linux/ubuntu/gpg
+      state: present
+  - name: add Docker Repository
+    become: yes
+    apt_repository:
+      repo: deb https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+      state: present
+  - name: Update Packages List
+    become: yes
+    apt:
+      update_cache: yes
+    register: update_result
+    retries: 3
+    delay: 10
+    until: update_result is succeeded
+  - name: Install Docker
+    become: yes
+    apt:
+      name: docker-ce
+      state: present
+  - name: Ensure Docker service is running
+    become: yes
+    systemd:
+      name: docker
+      enabled: yes
+      state: started
+  - name: Ensure the Docker registry container is running
+    become: yes
+    community.docker.docker_container:
+      name: registry
+      image: registry:2
+      state: started
+      restart_policy: always
+      published_ports:
+        - "5000:5000"
+  - name: Configure Docker to use insecure registry
+    become: yes
+    template:
+      src: daemon.json.j2
+      dest: /etc/docker/daemon.json
+      mode: '0644'
+  - name: Restart Docker to apply changes
+    become: yes
+    systemd:
+      name: docker
+      state: restarted
+      enabled: yes
+  - name: Ensure the directory exists on the host for PV
+    become: yes
+    ansible.builtin.file:
+      path: "{{ pv_target_dir }}"
+      state: directory
+      mode: '0755'
+  - name: Copy all dags from the repo directory to the airflow PV directory
+    become: yes
+    ansible.builtin.synchronize:
+      src: "{{ local_source_dir }}/"
+      dest: "{{ pv_target_dir }}"
+      mode: push
+      recursive: yes
+  - name: Create PersistentVolume
+    k8s:
+      definition:
+        apiVersion: v1
+        kind: PersistentVolume
+        metadata:
+          name: airflow-pv
+        spec:
+          capacity:
+            storage: 1Gi
+          accessModes:
+            - ReadWriteMany
+          persistentVolumeReclaimPolicy: Retain
+          storageClassName: manual
+          hostPath:
+            path: "{{ pv_target_dir }}"
+  - name: Create monitoring namespace
+    kubernetes.core.k8s:
+      name: airflow
+      api_version: v1
+      kind: Namespace
+      state: present
+  - name: Create PersistentVolumeClaim in the airflow namespace
+    k8s:
+      definition:
+        apiVersion: v1
+        kind: PersistentVolumeClaim
+        metadata:
+          name: airflow-pvc
+          namespace: "{{ namespace }}"  # PVC in airflow namespace
+        spec:
+          accessModes:
+            - ReadWriteMany
+          resources:
+            requests:
+              storage: 1Gi
+          storageClassName: manual
+  - name: Deploy latest version of Apache Airlfow chart inside its own namespace with values
+    kubernetes.core.helm:
+      name: airflow
+      chart_ref: apache-airflow/airflow
+      release_namespace: airflow
+      values:
+        config:
+          webserver:
+            expose_config: True
+        dags:
+          persistence:
+            enabled: true
+            existingClaim: airflow-pvc
+          gitSync:
+            enabled: false
+        ingress:
+          web:
+            enabled: true
+            path: "/"
+            hosts:
+              - apache-airflow.local
