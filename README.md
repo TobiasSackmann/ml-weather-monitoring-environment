@@ -62,6 +62,7 @@ Usage
         kubectl apply -f deployment.yaml
         kubectl apply -f service.yaml
         ```
+    * Login to your influxdb and create your bucket "forecast"
 * Visualize your raw data as well as the machine learning results in Grafana
 
 Testing
