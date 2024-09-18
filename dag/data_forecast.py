@@ -7,9 +7,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
-import sys
-sys.path.insert(1, './utils')
-import database_helper
+from utils import database_helper
 import pickle
 import pandas as pd
 
@@ -22,7 +20,7 @@ INPUT_BUCKET = "default"
 OUTPUT_BUCKET = "forecast"
 
 # TensorFlow Serving configuration
-TF_SERVING_URL = "http://weather-forecast.default.cluster.local:8501/v1/models/waether-timeseries-forecasts:predict"
+TF_SERVING_URL = "http://weather-forecast.default.svc.cluster.local:8501/v1/models/waether-timeseries-forecasts:predict"
 
 # Default arguments for the DAG
 default_args = {
@@ -49,14 +47,20 @@ def generate_timestamps(n):
 
 # Step 1: Function to read data from InfluxDB
 def read_from_influxdb():
-    with open('selected_columns.pkl', 'rb') as f:
-        selected_columns = pickle.load(f)
+    selected_columns = ['10838_days_0_precipitation',
+                        '10838_days_0_sunrise',
+                        '10838_days_0_sunset',
+                        '10838_days_0_sunshine',
+                        '10838_days_0_temperatureMax',
+                        '10838_days_0_temperatureMin',
+                        '10838_days_0_windDirection',
+                        '10838_days_0_windGust',
+                        '10838_days_0_windSpeed']
     strings_to_exclude = ['icon', 'moon', 'warning']
     selected_columns = [item for item in selected_columns if not any(substring in item for substring in strings_to_exclude)]
     strings_to_include = ['days_0', '10838']
     selected_columns = [item for item in selected_columns if all(substring in item for substring in strings_to_include)]
-    return database_helper.query_data(url=INFLUXDB_URL, field_list=selected_columns, start_time='2024-09-04T12:00:00Z')
-    #return df
+    return database_helper.query_data(url=INFLUXDB_URL, field_list=selected_columns)
 
 # Step 2: Function to Preprocess the Dataframe
 def preprocess_dataframe(df):
@@ -83,14 +87,14 @@ def send_to_tf_serving(df):
     time_range = 24
     df = df[:time_range]
     df.reset_index(drop=True, inplace=True)
-    
+    data = json.dumps({"signature_name": "serving_default", "instances": np.array(df).tolist()})
+
     if data:
-        data = json.dumps({"signature_name": "serving_default", "instances": np.array(df).tolist()})
         headers = {"content-type": "application/json"}
         response = requests.post(TF_SERVING_URL, data=data, headers=headers)
         if response.status_code == 200:
             predictions = response.json()["predictions"]
-            return [predictions, df.columns]
+            return [predictions, list(df.columns)]
         else:
             raise ValueError(f"Failed to get response from TF Serving: {response.text}")
     return None
@@ -113,7 +117,7 @@ with DAG(
     dag_id='influxdb_to_tensorflow_dag',
     default_args=default_args,
     description='DAG that reads data from InfluxDB, processes it with TensorFlow Serving, and writes it back to InfluxDB',
-    schedule_interval='*/10 * * * * *',  # Runs every 10 seconds
+    schedule_interval='@daily', # This will run the DAG every 24 hours
     catchup=False,
     tags=['tensorflow', 'influxdb'],
 ) as dag:
