@@ -274,3 +274,5 @@
             path: "/"
             hosts:
               - apache-airflow.local
+        defaultAirflowRepository: localhost:5000/custom-airflow
+        defaultAirflowTag: "1.01"
