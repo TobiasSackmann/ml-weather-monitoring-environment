@@ -11,3 +11,7 @@ inventory.yml
 *.pkl
 **/docker/waether-timeseries-forecasts/*
 *.h5
+*.tar
+*.pb
+*variables.data*
+variables.index
