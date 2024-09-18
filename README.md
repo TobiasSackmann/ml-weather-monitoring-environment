@@ -27,7 +27,7 @@ Usage
         children:
             server:
             hosts:
-                192.168.178.196
+                YOUR_IP
         ```
     * Execute the install playbook.
         ```shell
@@ -51,7 +51,7 @@ Usage
     * Provide your images to the local registry which was installed by the install.yaml playbook.
         ```shell
         docker save -o weather-forecast.tar weather-forecast
-        scp weather-forecast.tar YOUR_USER@192.168.178.196:/home/YOUR_USER/
+        scp weather-forecast.tar YOUR_USER@YOUR_IP:/home/YOUR_USER/
         ssh YOUR_USER@YOUR_VM_IP
         sudo docker load -i ./weather-forecast.tar
         sudo docker tag weather-forecast YOUR_VM_IP:5000/weather-forecast
@@ -63,6 +63,15 @@ Usage
         kubectl apply -f service.yaml
         ```
     * Login to your influxdb and create your bucket "forecast"
+* Build your custom apache airflow image. This might be required to install all necessary pip packages. A sample Dockerfile can be found in the docker/airflow directory.
+```shell
+    docker build -t YOUR_IP:5000/custom-airflow:YOUR_TAG .
+    docker save -o custom-airflow.tar custom-airflow
+    scp custom-airflow.tar YOUR_USER@YOUR_IP:/home/YOUR_USER/
+    ssh YOUR_USER@YOUR_IP
+    sudo docker load -i ./custom-airflow.tar
+    sudo docker push YOUR_IP:5000/custom-airflow
+```
 * Visualize your raw data as well as the machine learning results in Grafana
 
 Testing
