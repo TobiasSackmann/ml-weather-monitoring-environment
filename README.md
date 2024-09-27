@@ -1,6 +1,10 @@
 # Machine Learning Weather Monitoring Environment
 
-Repository for creating a Kubernetes based monitoring environment for DWD weather data.
+Repository for creating a Kubernetes and Machines Learning based monitoring environment for DWD weather data.
+
+The following picture shows an overview of the system components.
+
+![image](./pictures/system-overview.png)
 
 Requirements
 ------------
