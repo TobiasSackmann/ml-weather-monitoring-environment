@@ -127,7 +127,7 @@
     "timepicker": {},
     "timezone": "browser",
     "title": "Weather Forecast",
-    "uid": "cdygtwtbhtc74b",
+    "uid": "weatherforecast",
     "version": 1,
     "weekStart": ""
   }
