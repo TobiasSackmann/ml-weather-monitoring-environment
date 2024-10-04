@@ -91,7 +91,7 @@
           default:
             weather-forecast:
               json: |
-                {{ lookup('file', 'grafana-dashboard.json') }}
+                {{ lookup('file', 'grafana-dashboard.json') | indent(16) }}
         datasources:
           datasources.yaml:
             apiVersion: 1
