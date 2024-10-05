@@ -2,17 +2,23 @@
 from influxdb_client import InfluxDBClient
 from datetime import datetime, timedelta, timezone
 import pandas as pd
+from dotenv import load_dotenv
+import os
 
 def query_data(
     url = 'http://tig.influxdb.local',
-    token = "securetoken",
-    org = "influxdata",
-    bucket = "default",
+    token = '',
+    org = '',
+    bucket = '',
     query = '',
     start_time = '2024-07-28T12:00:00Z',
     end_time = '',
     field_list = None,
     query_range = 5):
+
+    token = os.getenv('INFLUXDB2_TOKEN') if token == ''else token
+    org = os.getenv('INFLUXDB2_ORGANIZATION') if org == ''else org
+    bucket = os.getenv('INFLUXDB2_BUCKET') if bucket == ''else bucket
 
     if end_time == '':
         current_datetime = datetime.now(timezone.utc) #datetime.utcnow()
