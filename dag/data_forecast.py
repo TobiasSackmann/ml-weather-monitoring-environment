@@ -20,7 +20,7 @@ INPUT_BUCKET = "default"
 OUTPUT_BUCKET = "forecast"
 
 # TensorFlow Serving configuration
-TF_SERVING_URL = "http://weather-forecast.default.svc.cluster.local:8501/v1/models/waether-timeseries-forecasts:predict"
+TF_SERVING_URL = "http://weather-forecast.machinelearning.svc.cluster.local:8501/v1/models/waether-timeseries-forecasts:predict"
 
 # Default arguments for the DAG
 default_args = {
