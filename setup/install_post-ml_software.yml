@@ -1,9 +1,7 @@
 ---
 - hosts: k3s_cluster
-  vars:
-    local_source_dir: ../dag/  # Change to your local directory containing files
-    pv_target_dir: /data/pv001  # Path on the host where PV will be mounted
-    namespace: airflow  # The namespace where the PVC should be created
+  vars_files:
+    - vars.yaml
   tasks:
   - name: Create monitoring namespace
     kubernetes.core.k8s:
@@ -68,27 +66,27 @@
             datasources:
               - name: InfluxDB
                 type: influxdb
-                access: proxy    # or `direct` depending on your setup
-                url: http://influxdb-influxdb2.monitoring.svc.cluster.local:80  # URL of your InfluxDB service within the Kubernetes cluster
-                isDefault: true   # Set as the default datasource if needed
+                access: proxy
+                url: http://influxdb-influxdb2.monitoring.svc.cluster.local:80
+                isDefault: true
                 jsonData:
-                  version: Flux    # Specifies to use Flux language (required for InfluxDB 2.x)
-                  organization: influxdata  # Organization name in InfluxDB 2.x
-                  defaultBucket: default  # Default bucket name in InfluxDB 2.x
-                  tlsSkipVerify: true  # Use this if you want to skip SSL verification (for self-signed certs or no TLS)
+                  version: Flux
+                  organization: "{{ influxdb2_organization }}"
+                  defaultBucket: "{{ influxdb2_bucket }}"
+                  tlsSkipVerify: "{{ influxdb2_tlsSkipVerify }}"
                 secureJsonData:
-                  token: securetoken  # Token for authentication (store this securely as an environment variable)
+                  token: securetoken # TODO: Vault!
   - name: Ensure the directory exists on the host for PV
     become: yes
     ansible.builtin.file:
-      path: "{{ pv_target_dir }}"
+      path: "{{ airflow_pv_target_dir }}"
       state: directory
       mode: '0755'
   - name: Copy all dags from the repo directory to the airflow PV directory
     become: yes
     ansible.builtin.synchronize:
-      src: "{{ local_source_dir }}/"
-      dest: "{{ pv_target_dir }}"
+      src: "{{ airflow_local_source_dir }}/"
+      dest: "{{ airflow_pv_target_dir }}"
       mode: push
       recursive: yes
   - name: Create PersistentVolume
@@ -106,7 +104,7 @@
           persistentVolumeReclaimPolicy: Retain
           storageClassName: manual
           hostPath:
-            path: "{{ pv_target_dir }}"
+            path: "{{ airflow_pv_target_dir }}"
   - name: Create airflow namespace
     kubernetes.core.k8s:
       name: airflow
@@ -120,7 +118,7 @@
         kind: PersistentVolumeClaim
         metadata:
           name: airflow-pvc
-          namespace: "{{ namespace }}"  # PVC in airflow namespace
+          namespace: "{{ airflow_namespace }}"
         spec:
           accessModes:
             - ReadWriteMany

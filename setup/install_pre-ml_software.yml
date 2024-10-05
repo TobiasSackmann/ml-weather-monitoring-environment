@@ -1,5 +1,8 @@
 ---
 - hosts: k3s_cluster
+  vars_files:
+    - vars.yaml
+    - sample-vault.yaml
   tasks:
   # retries are required to ensure everything is ready after kubernetes installation.
   - name: install apt pre-requisites
@@ -52,8 +55,6 @@
     kubernetes.core.helm_repository:
       name: bitnami
       repo_url: "https://charts.bitnami.com/bitnami"
-  - name: Update Helm Repos
-    command: helm repo update
   - name: Deploy and configure latest version of Influxdb2 chart
     kubernetes.core.helm:
       name: influxdb
@@ -68,11 +69,11 @@
         service:
           type: ClusterIP 
         adminUser:
-          organization: "influxdata"
-          bucket: "default"
-          user: "admin"
-          password: "password"
-          token: "securetoken"
+          organization: "{{ influxdb2_organization }}"
+          bucket: "{{ influxdb2_bucket }}"
+          user: "{{ influxdb2_user }}"
+          password: "{{ influxdb2_password }}"
+          token: "{{ influxdb2_token }}"
   - name: Deploy and configure latest version of Telegraf chart
     kubernetes.core.helm:
       name: telegraf
@@ -94,9 +95,9 @@
             - influxdb_v2:
                 urls:
                   - "http://influxdb-influxdb2.monitoring.svc.cluster.local:80"
-                organization: "influxdata"
-                bucket: "default"
-                token: "securetoken"
+                organization: "{{ influxdb2_organization }}"
+                bucket: "{{ influxdb2_bucket }}"
+                token: "securetoken" # TODO: Vault
   # In case this is installed multiple times on the machine make sure the postgre pv and pvc is remove properly
   # Otherwise the authentication will fail
   - name: Install mlflow from bitnahmi helm chart
@@ -107,16 +108,27 @@
       create_namespace: true
       chart_version: 2.0.0
       values:
+        postgresql:
+          enabled: true
+          auth:
+            username: "{{ mlflow_postgesql_user }}"
+            password: "{{ mlflow_postgesql_password }}"
+            database: "{{ mlflow_postgesql_database }}"
+        minio:
+          enabled: true
+          auth:
+            rootUser: "{{ mlflow_minio_rootuser }}"
+            rootPassword: "{{ mlflow_minio_rootpassword }}"
         # The http port is required in order for mlflow to find a free node port
         tracking:
           service:
             ports:
-              http: 30001
+              http: "{{ mlflow_serviceport_http }}"
           auth:
-            username: user
-            password: password
+            username: "{{ mlflow_auth_username }}"
+            password: "{{ mlflow_auth_password }}"
           ingress:
-            enabled: true
+            enabled: "{{ mlflow_ingress_enabled }}"
   - name: Install docker related packages
     become: yes
     apt:
