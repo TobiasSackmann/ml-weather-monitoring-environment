@@ -100,6 +100,7 @@
                 token: "securetoken" # TODO: Vault
   # In case this is installed multiple times on the machine make sure the postgre pv and pvc is remove properly
   # Otherwise the authentication will fail
+  # Also be sure to not change the user name. Otherwise the bitnami chart does not work properly.
   - name: Install mlflow from bitnahmi helm chart
     kubernetes.core.helm:
       name: mlflow
