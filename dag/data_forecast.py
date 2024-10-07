@@ -10,11 +10,12 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 from utils import database_helper
 import pickle
 import pandas as pd
+import os
 
 
 # InfluxDB configuration
 INFLUXDB_URL = "http://influxdb-influxdb2.monitoring.svc.cluster.local:80"
-INFLUXDB_TOKEN = "securetoken"
+INFLUXDB_TOKEN = os.getenv('influxdb2_token')
 INFLUXDB_ORG = "influxdata"
 INPUT_BUCKET = "default"
 OUTPUT_BUCKET = "forecast"
@@ -60,7 +61,7 @@ def read_from_influxdb():
     selected_columns = [item for item in selected_columns if not any(substring in item for substring in strings_to_exclude)]
     strings_to_include = ['days_0', '10838']
     selected_columns = [item for item in selected_columns if all(substring in item for substring in strings_to_include)]
-    return database_helper.query_data(url=INFLUXDB_URL, field_list=selected_columns)
+    return database_helper.query_data(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, field_list=selected_columns)
 
 # Step 2: Function to Preprocess the Dataframe
 def preprocess_dataframe(df):
