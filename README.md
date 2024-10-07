@@ -6,10 +6,9 @@ The following picture shows an overview of the system components.
 
 ![image](./pictures/system-overview.png)
 
-Requirements
-------------
+## Requirements
 * A Kubernetes Cluster. This Repository is supposed to be used in combination with my [proxmox-k3s repo](https://github.com/TobiasSackmann/proxmox-k3s), but can easily be amended to be used with any kubernetes cluster.
-* Python3 is locally installed with packages
+* Python3 is locally installed with these packages
     * jinja2
     * mlflow
     * influxdb_client
@@ -20,75 +19,81 @@ Requirements
     * seaborn
     * numpy
     * tensorflow
+    * python-dotenv
 
-Usage
------
-* Execute the setup.sh script from the setup direcory.
-    * First Create a inventory.yml. It should look like this example.
-        ```shell
-        ---
-        k3s_cluster:
-        children:
-            server:
-            hosts:
-                YOUR_IP
-        ```
-    * Create ansible vault. Example content:
-        ```shell
-        # influxdb2
-        influxdb2_user: admin
-        influxdb2_password: password
-        influxdb2_token: securetoken
+## Usage
+This repository deploys its component in two phases.
+1. In the first phase it deploys all components that do not require a running Machine Learning Model. This is done with the install-ml-independent_software.yml ansible playbook.
+2.  In the second phase the Machine Learning Model and Software that depend on a running Model are deploy.
 
-        # mlflow
-        mlflow_postgesql_user: bn_mlflow
-        mlflow_postgesql_password: password
-        mlflow_postgesql_database: bitnami_mlflow
-        mlflow_minio_rootuser: admin
-        mlflow_minio_rootpassword: password
-        mlflow_serviceport_http: 30001
-        mlflow_auth_username: user
-        mlflow_auth_password: password
-        mlflow_ingress_enabled: true
+Therefore it is mandatory to train and provide such a model as a docker container within the local registry. That registry will be deployed in phase 1.
 
-        ```
-    * Execute the basis install playbook.
-        ```shell
-        ansible-playbook install-ml-independent_software.yml -i ./inventory.yml
-        ```
-    * Train your machine learning model. For that you should create you .env file in order to handle sensistive data. Example content:
-        ```shell
-        INFLUXDB2_USER=admin
-        INFLUXDB2_PASSWORD=password
-        INFLUXDB2_TOKEN=securetoken
-        INFLUXDB2_ORGANIZATION=influxdata
-        INFLUXDB2_BUCKET=default
-        INFLUXDB2_ML_BUCKET=forecast
-
-        MLFLOW_AUTH_USERNAME=user
-        MLFLOW_AUTH_PASSWORD=password
-        MLFLOW_TRACKING_USERNAME=user
-        MLFLOW_TRACKING_PASSWORD=password
-        ```
-    *Execute the install playbook to deploy the machine learing model as well as grafana and apache airflow.
+### Phase 1
+In this phase the basic setup is installed on the cluster.
+* Before that playbook can be executed an inventory.yml is required in the setup directory. It should look like this example.
     ```shell
-    ansible-playbook install-ml-dependent_software.yml -i ./inventory.yml
+    ---
+    k3s_cluster:
+    children:
+        server:
+        hosts:
+            YOUR_KUBERNETES_IP
     ```
-* In case you do not have DNS in you network, you need to amend your /etc/hosts file by adding the following entries. 1.2.3.4 should be replaced by the ip of your new virtual VM.
+* For handling sensible data an ansible vault is also required in the setup directory. A sample-vault.yaml could look like this:
+    ```shell
+    # influxdb2
+    influxdb2_user: admin
+    influxdb2_password: password
+    influxdb2_token: securetoken
+
+    # mlflow
+    mlflow_postgesql_user: bn_mlflow
+    mlflow_postgesql_password: password
+    mlflow_postgesql_database: bitnami_mlflow
+    mlflow_minio_rootuser: admin
+    mlflow_minio_rootpassword: password
+    mlflow_serviceport_http: 30001
+    mlflow_auth_username: user
+    mlflow_auth_password: password
+    mlflow_ingress_enabled: true
+    ```
+* Execute the basic install ansible playbook. If a file for en-/decrypting the vault is used. The command is:
+    ```shell
+    ansible-playbook install_pre-ml_software.yml -i ./inventory.yml --vault-password-file .vault_pass
+    ```
+* In case you do not have DNS in you network, you need to amend your /etc/hosts file by adding the following entries. 1.2.3.4 should be replaced by the IP of your Kubernetes Cluster. This will enable you to access the WebUi of InfluxDb, MlFlow and later also Grafana and Apache Airflow from the Webbrowser.
     ```shell
     1.2.3.4    tig.grafana.local
     1.2.3.4    tig.influxdb.local
     1.2.3.4    mlflow.local
     1.2.3.4    apache-airflow.local
     ```
-* Create/Train your Machine Learning Model.
-    * You should first run the feature selektion notebook(feature_selection.ipynb) from within the notebooks direcory.
-    * Then run your desired notebook for training a model. For example multi-output_timeseries_forecast.ipynb.ipynb. All steps below will assume you use this notebook. You will need to adapt command and file if you use another notebook/model.
-* Put it in a docker container. For tensorflow/keras model you can use the dockerfile ins the docker directory. Example:
+
+### Machine Learning Model Training
+Now the Machine Learning model needs to be created.
+* Preparation for Training the Machine Learning Model.
+    * An .env file should be created in the notebooks directory in order to handle sensistive data.
+    Example content:
+    ```shell
+    INFLUXDB2_USER=admin
+    INFLUXDB2_PASSWORD=password
+    INFLUXDB2_TOKEN=securetoken
+    INFLUXDB2_ORGANIZATION=influxdata
+    INFLUXDB2_BUCKET=default
+    INFLUXDB2_ML_BUCKET=forecast
+
+    MLFLOW_AUTH_USERNAME=user
+    MLFLOW_AUTH_PASSWORD=password
+    MLFLOW_TRACKING_USERNAME=user
+    MLFLOW_TRACKING_PASSWORD=password
+    ```
+    * Run the feature selektion notebook feature_selection.ipynb from within the notebooks directory.
+* Then run the desired notebook for training a model. The code of this repository and this README file assume that the multi-output_timeseries_forecast.ipynb was used for that purpose. Using another notebook or a model not coming from this repository will require code amendments.
+* Put the new Machine Learning Model in a docker container. For tensorflow/keras model you can use the dockerfile ins the docker directory. Example:
     ```shell
     docker build -t weather-forecast .
     ```
-* Install it in the kubernetes cluster. The steps below provide an example for 
+* Install it in the local registry which was created in phase 1. The steps below provide an example for 
     * Provide your images to the local registry which was installed by the install.yaml playbook.
         ```shell
         docker save -o weather-forecast.tar weather-forecast
@@ -98,12 +103,18 @@ Usage
         sudo docker tag weather-forecast YOUR_VM_IP:5000/weather-forecast
         sudo docker push YOUR_VM_IP:5000/weather-forecast
         ```
-    * Install the service and the deployment.
-        ```shell
-        kubectl apply -f deployment.yaml
-        kubectl apply -f service.yaml
-        ```
-    * Login to your influxdb and create your bucket "forecast"
+    * Login to influxdb the username/password via webui and create your bucket "forecast"
+
+### Testing the new Model
+This command runs the new Machine Learning docker container.
+```shell
+docker run -p 8501:8501 weather-forecast
+```
+
+The notebook test_dockercontainer.ipynb provides an easy way of creating an inference by requesting it from the docker container.
+
+### Phase 2
+In this phase the final system components are deployed to the docker container.
 * Build your custom apache airflow image. This might be required to install all necessary pip packages. A sample Dockerfile can be found in the docker/airflow directory.
 ```shell
     docker build -t YOUR_IP:5000/custom-airflow:YOUR_TAG .
@@ -113,13 +124,10 @@ Usage
     sudo docker load -i ./custom-airflow.tar
     sudo docker push YOUR_IP:5000/custom-airflow
 ```
-* Visualize your raw data as well as the machine learning results in Grafana
-
-Testing
------
-```shell
-docker run -p 8501:8501 weather-forecast
-```
+* Execute the install playbook to deploy the machine learning model as well as grafana and apache airflow.
+    ```shell
+    ansible-playbook install_post-ml_software.yml -i ./inventory.yml --vault-password-file .vault_pass
+    ```
 
 Technologies used
 -----

@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 from influxdb_client import InfluxDBClient
-from datetime import datetime, timedelta, timezone
-import pandas as pd
 
 def query_data(
     url = '',
