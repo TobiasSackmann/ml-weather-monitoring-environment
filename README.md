@@ -35,7 +35,7 @@ Usage
         ```
     * Execute the install playbook.
         ```shell
-        ansible-playbook install.yml -i ./inventory.yml
+        ansible-playbook install-ml-independent_software.yml -i ./inventory.yml
         ```
 * In case you do not have DNS in you network, you need to amend your /etc/hosts file by adding the following entries. 1.2.3.4 should be replaced by the ip of your new virtual VM.
     ```shell

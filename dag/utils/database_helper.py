@@ -4,10 +4,10 @@ from datetime import datetime, timedelta, timezone
 import pandas as pd
 
 def query_data(
-    url = 'http://tig.influxdb.local',
-    token = "securetoken",
-    org = "influxdata",
-    bucket = "default",
+    url = '',
+    token = '',
+    org = 'influxdata',
+    bucket = 'default',
     field_list = None):
 
     client = InfluxDBClient(url=url, token=token, org=org)

@@ -1,0 +1,15 @@
+# influxdb2
+influxdb2_user: admin
+influxdb2_password: password
+influxdb2_token: securetoken
+
+# mlflow
+mlflow_postgesql_user: bn_mlflow
+mlflow_postgesql_password: password
+mlflow_postgesql_database: bitnami_mlflow
+mlflow_minio_rootuser: admin
+mlflow_minio_rootpassword: password
+mlflow_serviceport_http: 30001
+mlflow_auth_username: user
+mlflow_auth_password: password
+mlflow_ingress_enabled: true
