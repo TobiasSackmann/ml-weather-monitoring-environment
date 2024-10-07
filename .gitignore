@@ -16,3 +16,5 @@ inventory.yml
 *variables.data*
 variables.index
 *.drawio
+.vault_pass
+*vault.yaml
