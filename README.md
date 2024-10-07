@@ -33,10 +33,47 @@ Usage
             hosts:
                 YOUR_IP
         ```
-    * Execute the install playbook.
+    * Create ansible vault. Example content:
+        ```shell
+        # influxdb2
+        influxdb2_user: admin
+        influxdb2_password: password
+        influxdb2_token: securetoken
+
+        # mlflow
+        mlflow_postgesql_user: bn_mlflow
+        mlflow_postgesql_password: password
+        mlflow_postgesql_database: bitnami_mlflow
+        mlflow_minio_rootuser: admin
+        mlflow_minio_rootpassword: password
+        mlflow_serviceport_http: 30001
+        mlflow_auth_username: user
+        mlflow_auth_password: password
+        mlflow_ingress_enabled: true
+
+        ```
+    * Execute the basis install playbook.
         ```shell
         ansible-playbook install-ml-independent_software.yml -i ./inventory.yml
         ```
+    * Train your machine learning model. For that you should create you .env file in order to handle sensistive data. Example content:
+        ```shell
+        INFLUXDB2_USER=admin
+        INFLUXDB2_PASSWORD=password
+        INFLUXDB2_TOKEN=securetoken
+        INFLUXDB2_ORGANIZATION=influxdata
+        INFLUXDB2_BUCKET=default
+        INFLUXDB2_ML_BUCKET=forecast
+
+        MLFLOW_AUTH_USERNAME=user
+        MLFLOW_AUTH_PASSWORD=password
+        MLFLOW_TRACKING_USERNAME=user
+        MLFLOW_TRACKING_PASSWORD=password
+        ```
+    *Execute the install playbook to deploy the machine learing model as well as grafana and apache airflow.
+    ```shell
+    ansible-playbook install-ml-dependent_software.yml -i ./inventory.yml
+    ```
 * In case you do not have DNS in you network, you need to amend your /etc/hosts file by adding the following entries. 1.2.3.4 should be replaced by the ip of your new virtual VM.
     ```shell
     1.2.3.4    tig.grafana.local
