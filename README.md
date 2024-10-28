@@ -34,10 +34,10 @@ In this phase the basic setup is installed on the cluster.
     ```shell
     ---
     k3s_cluster:
-    children:
-        server:
-        hosts:
-            YOUR_KUBERNETES_IP
+        children:
+            server:
+                hosts:
+                    YOUR_KUBERNETES_IP
     ```
 * For handling sensible data an ansible vault is also required in the setup directory. A sample-vault.yaml could look like this:
     ```shell
