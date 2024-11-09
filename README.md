@@ -1,13 +1,12 @@
 # Machine Learning Weather Monitoring Environment
 
-Repository for creating a Kubernetes and Machines Learning based monitoring environment for DWD weather data.
-
+Repistoriy for creating a monitoring environment for DWD weather data using Kubernetes and Machines Learning.
 The following picture shows an overview of the system components.
 
 ![image](./pictures/system-overview.png)
 
 ## Requirements
-* A Kubernetes Cluster. This Repository is supposed to be used in combination with my [proxmox-k3s repo](https://github.com/TobiasSackmann/proxmox-k3s), but can easily be amended to be used with any kubernetes cluster.
+* A Kubernetes Cluster. This Repository is supposed to be used in combination with my [proxmox-k3s repo](https://github.com/TobiasSackmann/proxmox-k3s), but can easily be adjusted to be used with any kubernetes cluster.
 * Python3 is locally installed with these packages
     * jinja2
     * mlflow
