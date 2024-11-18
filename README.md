@@ -6,21 +6,22 @@ Repistoriy for creating a monitoring environment for DWD weather data using Kube
 
 ## Software
 
-| Software            | Helm Chart Version    |
+| Software            | Helm Chart    |
 |---------------------|------------|
-| ![Telegraf](https://img.shields.io/badge/Telegraf-v1.24.1-blue?logo=telegraf) | v1.24.1 |
-| ![InfluxDB](https://img.shields.io/badge/InfluxDB-v2.6.1-brightgreen?logo=influxdb) | v2.6.1 |
-| ![Grafana](https://img.shields.io/badge/Grafana-v10.1.0-orange?logo=grafana) | v10.1.0 |
-| ![Apache Airflow](https://img.shields.io/badge/Apache%20Airflow-v2.6.3-blue?logo=apacheairflow) | v2.6.3 |
-| ![MLflow](https://img.shields.io/badge/MLflow-v2.4.0-lightblue?logo=mlflow) | v2.4.0 |
-| ![K3s/Kubernetes](https://img.shields.io/badge/Kubernetes-v1.26.0-blue?logo=kubernetes) | - |
-| ![Python](https://img.shields.io/badge/Python-v3.11.5-yellow?logo=python) | - |
-| ![Ansible](https://img.shields.io/badge/Ansible-v8.0.0-red?logo=ansible) | - |
-| ![TensorFlow](https://img.shields.io/badge/TensorFlow-v2.13.0-orange?logo=tensorflow) | - |
-| ![Scikit-learn](https://img.shields.io/badge/Scikit--learn-v1.3.0-blue?logo=scikitlearn) | - |
-| ![Pandas](https://img.shields.io/badge/Pandas-v2.1.2-green?logo=pandas) | - |
-| ![Helm](https://img.shields.io/badge/Helm-v3.12.3-purple?logo=helm) | - |
-| ![Docker](https://img.shields.io/badge/Docker-v3.12.3-purple?logo=docker) | - |
+| ![Telegraf](https://img.shields.io/badge/Telegraf-v1.32.0-blue?logo=telegraf) | v1.8.54 |
+| ![InfluxDB](https://img.shields.io/badge/InfluxDB-v2.7.4-brightgreen?logo=influxdb) | v2.1.2 |
+| ![Grafana](https://img.shields.io/badge/Grafana-v11.2.1-orange?logo=grafana) | v8.5.2 |
+| ![Apache Airflow](https://img.shields.io/badge/Apache%20Airflow-v2.9.3-blue?logo=apacheairflow) | v1.15.0 |
+| ![MLflow](https://img.shields.io/badge/MLflow-v2.16.2-lightblue?logo=mlflow) | v2.0.0 |
+| ![K3s/Kubernetes](https://img.shields.io/badge/Kubernetes-v1.26.9+k3s1-blue?logo=kubernetes) | - |
+| ![Python](https://img.shields.io/badge/Python-v3.12.7-yellow?logo=python) | - |
+| ![Ansible](https://img.shields.io/badge/Ansible-v2.18.0-red?logo=ansible) | - |
+| ![Jinja](https://img.shields.io/badge/Jinja-v3.1.4-red?logo=jinja) | - |
+| ![TensorFlow](https://img.shields.io/badge/TensorFlow-v2.17.0-orange?logo=tensorflow) | - |
+| ![Scikit-learn](https://img.shields.io/badge/Scikit--learn-v1.5.1-blue?logo=scikitlearn) | - |
+| ![Pandas](https://img.shields.io/badge/Pandas-v2.2.2-green?logo=pandas) | - |
+| ![Helm](https://img.shields.io/badge/Helm-v3.16.3-purple?logo=helm) | - |
+| ![Docker](https://img.shields.io/badge/Docker-v27.2.31-purple?logo=docker) | - |
 
 
 The following picture shows an overview of the system components.
@@ -80,7 +81,7 @@ In this phase the basic setup is installed on the cluster.
     ```
 * Execute the basic install ansible playbook. If a file for en-/decrypting the vault is used. The command is:
     ```shell
-    ansible-playbook install_pre-ml_software.yml -i ./inventory.yml --vault-password-file .vault_pass
+    ansible-playbook cluster_setup.yml -i ./inventory.yml --vault-password-file .vault_pass
     ```
 * In case you do not have DNS in you network, you need to amend your /etc/hosts file by adding the following entries. 1.2.3.4 should be replaced by the IP of your Kubernetes Cluster. This will enable you to access the WebUi of InfluxDb, MlFlow and later also Grafana and Apache Airflow from the Webbrowser.
     ```shell
@@ -147,5 +148,5 @@ In this phase the final system components are deployed to the docker container.
 ```
 * Execute the install playbook to deploy the machine learning model as well as grafana and apache airflow.
     ```shell
-    ansible-playbook install_post-ml_software.yml -i ./inventory.yml --vault-password-file .vault_pass
+    ansible-playbook ml_monitoring_setup.yml -i ./inventory.yml --vault-password-file .vault_pass
     ```
