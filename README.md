@@ -1,6 +1,28 @@
+
+
 # Machine Learning Weather Monitoring Environment
 
 Repistoriy for creating a monitoring environment for DWD weather data using Kubernetes and Machines Learning.
+
+## Software
+
+| Software            | Helm Chart Version    |
+|---------------------|------------|
+| ![Telegraf](https://img.shields.io/badge/Telegraf-v1.24.1-blue?logo=telegraf) | v1.24.1 |
+| ![InfluxDB](https://img.shields.io/badge/InfluxDB-v2.6.1-brightgreen?logo=influxdb) | v2.6.1 |
+| ![Grafana](https://img.shields.io/badge/Grafana-v10.1.0-orange?logo=grafana) | v10.1.0 |
+| ![Apache Airflow](https://img.shields.io/badge/Apache%20Airflow-v2.6.3-blue?logo=apacheairflow) | v2.6.3 |
+| ![MLflow](https://img.shields.io/badge/MLflow-v2.4.0-lightblue?logo=mlflow) | v2.4.0 |
+| ![K3s/Kubernetes](https://img.shields.io/badge/Kubernetes-v1.26.0-blue?logo=kubernetes) | - |
+| ![Python](https://img.shields.io/badge/Python-v3.11.5-yellow?logo=python) | - |
+| ![Ansible](https://img.shields.io/badge/Ansible-v8.0.0-red?logo=ansible) | - |
+| ![TensorFlow](https://img.shields.io/badge/TensorFlow-v2.13.0-orange?logo=tensorflow) | - |
+| ![Scikit-learn](https://img.shields.io/badge/Scikit--learn-v1.3.0-blue?logo=scikitlearn) | - |
+| ![Pandas](https://img.shields.io/badge/Pandas-v2.1.2-green?logo=pandas) | - |
+| ![Helm](https://img.shields.io/badge/Helm-v3.12.3-purple?logo=helm) | - |
+| ![Docker](https://img.shields.io/badge/Docker-v3.12.3-purple?logo=docker) | - |
+
+
 The following picture shows an overview of the system components.
 
 ![image](./pictures/system-overview.png)
@@ -127,19 +149,3 @@ In this phase the final system components are deployed to the docker container.
     ```shell
     ansible-playbook install_post-ml_software.yml -i ./inventory.yml --vault-password-file .vault_pass
     ```
-
-Technologies used
------
-
-* Kubernetes
-* Docker
-* Ansible
-* Jinja
-* Helm (within Ansible)
-* Python/Jupyter Notebooks
-* Tensorflow
-* Shell
-* InfluxDB
-* Telegraf
-* Grafana
-* MLFlow
