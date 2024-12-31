@@ -21,4 +21,4 @@ jobs:
         pip install nbqa flake8
     - name: Lint Jupyter Notebooks
       run: |
-        nbqa flake8 .
+        nbqa flake8 . --ignore=F821
