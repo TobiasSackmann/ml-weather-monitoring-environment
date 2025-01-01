@@ -1,192 +1,193 @@
 ---
-- hosts: k3s_cluster
+- name: Cluster Setup
+  hosts: k3s_cluster
   vars_files:
     - vars.yaml
     - sample-vault.yaml
   tasks:
   # retries are required to ensure everything is ready after kubernetes installation.
-  - name: install apt pre-requisites
-    become: yes
-    apt:
-      name:
-        - python3-pip
-        - snap
-      update_cache: yes
-    retries: 10
-    delay: 30
-  # Install requirements for this playbook
-  - name: install pip pre-requisites
-    pip:
-      name:
-        - openshift
-        - pyyaml
-        - kubernetes
-  - name: install helm
-    become: yes
-    snap:
-      name:
-        - helm
-      classic: true
-  # This supports ansible by evaluating the target kubernetes cluster status
-  - name: install Helm Diff Plugin
-    kubernetes.core.helm_plugin:
-      plugin_path: https://github.com/databus23/helm-diff
-      state: present
-  # K3s does not put the kube config where the ansible modules expect it
-  - name: copy kubeconfig to home directory
-    become: yes
-    ansible.builtin.copy:
-      src: /etc/rancher/k3s/k3s.yaml
-      dest: /home/{{ ansible_user }}/.kube/config 
-      remote_src: true
-      owner: '{{ ansible_user }}'
-      mode: '0700'
-  - name: Create monitoring namespace
-    kubernetes.core.k8s:
-      name: monitoring
-      api_version: v1
-      kind: Namespace
-      state: present
-  - name: Add stable influxdata chart repo
-    kubernetes.core.helm_repository:
-      name: influxdata
-      repo_url: "https://helm.influxdata.com/"
-  - name: Add apache bitnami chart repo
-    kubernetes.core.helm_repository:
-      name: bitnami
-      repo_url: "https://charts.bitnami.com/bitnami"
-  - name: Deploy and configure latest version of Influxdb2 chart
-    kubernetes.core.helm:
-      name: influxdb
-      chart_ref: influxdata/influxdb2
-      release_namespace: monitoring
-      values:
-        ingress:
-          enabled: true
-          hostname: tig.influxdb.local
-          className: traefik
-          path: /
-        service:
-          type: ClusterIP 
-        adminUser:
-          organization: "{{ influxdb2_organization }}"
-          bucket: "{{ influxdb2_bucket }}"
-          user: "{{ influxdb2_user }}"
-          password: "{{ influxdb2_password }}"
-          token: "{{ influxdb2_token }}"
-  - name: Deploy and configure latest version of Telegraf chart
-    kubernetes.core.helm:
-      name: telegraf
-      chart_ref: influxdata/telegraf
-      release_namespace: monitoring
-      values:
-        service:
-          enabled: false
-        config:
-          inputs:
-            - http:
-                urls:
-                  - "https://dwd.api.proxy.bund.dev/v30/stationOverviewExtended?stationIds=10838,10840"
-                method: "GET"
-                interval: "10s"
-                response_timeout: "10s"
-                data_format: "json"
-          outputs:
-            - influxdb_v2:
-                urls:
-                  - "http://influxdb-influxdb2.monitoring.svc.cluster.local:80"
-                organization: "{{ influxdb2_organization }}"
-                bucket: "{{ influxdb2_bucket }}"
-                token: "securetoken" # TODO: Vault
-  # In case this is installed multiple times on the machine make sure the postgre pv and pvc is remove properly
-  # Otherwise the authentication will fail
-  # Also be sure to not change the user name. Otherwise the bitnami chart does not work properly.
-  - name: Install mlflow from bitnahmi helm chart
-    kubernetes.core.helm:
-      name: mlflow
-      chart_ref: bitnami/mlflow
-      release_namespace: mlflow
-      create_namespace: true
-      chart_version: 2.0.0
-      values:
-        postgresql:
-          enabled: true
-          auth:
-            username: "{{ mlflow_postgesql_user }}"
-            password: "{{ mlflow_postgesql_password }}"
-            database: "{{ mlflow_postgesql_database }}"
-        minio:
-          enabled: true
-          auth:
-            rootUser: "{{ mlflow_minio_rootuser }}"
-            rootPassword: "{{ mlflow_minio_rootpassword }}"
-        # The http port is required in order for mlflow to find a free node port
-        tracking:
-          service:
-            ports:
-              http: "{{ mlflow_serviceport_http }}"
-          auth:
-            username: "{{ mlflow_auth_username }}"
-            password: "{{ mlflow_auth_password }}"
+    - name: Install apt pre-requisites
+      become: true
+      ansible.builtin.apt:
+        name:
+          - python3-pip
+          - snap
+        update_cache: true
+      retries: 10
+      delay: 30
+    # Install requirements for this playbook
+    - name: Install pip pre-requisites
+      ansible.builtin.pip:
+        name:
+          - openshift
+          - pyyaml
+          - kubernetes
+    - name: Install helm
+      become: true
+      community.general.snap:
+        name:
+          - helm
+        classic: true
+    # This supports ansible by evaluating the target kubernetes cluster status
+    - name: Install Helm Diff Plugin
+      kubernetes.core.helm_plugin:
+        plugin_path: https://github.com/databus23/helm-diff
+        state: present
+    # K3s does not put the kube config where the ansible modules expect it
+    - name: Copy kubeconfig to home directory
+      become: true
+      ansible.builtin.copy:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: /home/{{ ansible_user }}/.kube/config
+        remote_src: true
+        owner: '{{ ansible_user }}'
+        mode: '0700'
+    - name: Create monitoring namespace
+      kubernetes.core.k8s:
+        name: monitoring
+        api_version: v1
+        kind: Namespace
+        state: present
+    - name: Add stable influxdata chart repo
+      kubernetes.core.helm_repository:
+        name: influxdata
+        repo_url: "https://helm.influxdata.com/"
+    - name: Add apache bitnami chart repo
+      kubernetes.core.helm_repository:
+        name: bitnami
+        repo_url: "https://charts.bitnami.com/bitnami"
+    - name: Deploy and configure latest version of Influxdb2 chart
+      kubernetes.core.helm:
+        name: influxdb
+        chart_ref: influxdata/influxdb2
+        release_namespace: monitoring
+        values:
           ingress:
-            enabled: "{{ mlflow_ingress_enabled }}"
-  - name: Install docker related packages
-    become: yes
-    apt:
-      name: "{{ item }}"
-      state: present
-    loop:
-      - apt-transport-https
-      - ca-certificates
-      - curl
-      - software-properties-common
-  - name: Add docker GPG-Key hinzu
-    become: yes
-    apt_key:
-      url: https://download.docker.com/linux/ubuntu/gpg
-      state: present
-  - name: add Docker Repository
-    become: yes
-    apt_repository:
-      repo: deb https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
-      state: present
-  - name: Update Packages List
-    become: yes
-    apt:
-      update_cache: yes
-    register: update_result
-    retries: 3
-    delay: 10
-    until: update_result is succeeded
-  - name: Install Docker
-    become: yes
-    apt:
-      name: docker-ce
-      state: present
-  - name: Ensure Docker service is running
-    become: yes
-    systemd:
-      name: docker
-      enabled: yes
-      state: started
-  - name: Ensure the Docker registry container is running
-    become: yes
-    community.docker.docker_container:
-      name: registry
-      image: registry:2
-      state: started
-      restart_policy: always
-      published_ports:
-        - "5000:5000"
-  - name: Configure Docker to use insecure registry
-    become: yes
-    template:
-      src: daemon.json.j2
-      dest: /etc/docker/daemon.json
-      mode: '0644'
-  - name: Restart Docker to apply changes
-    become: yes
-    systemd:
-      name: docker
-      state: restarted
-      enabled: yes
+            enabled: true
+            hostname: tig.influxdb.local
+            className: traefik
+            path: /
+          service:
+            type: ClusterIP
+          adminUser:
+            organization: "{{ influxdb2_organization }}"
+            bucket: "{{ influxdb2_bucket }}"
+            user: "{{ influxdb2_user }}"
+            password: "{{ influxdb2_password }}"
+            token: "{{ influxdb2_token }}"
+    - name: Deploy and configure latest version of Telegraf chart
+      kubernetes.core.helm:
+        name: telegraf
+        chart_ref: influxdata/telegraf
+        release_namespace: monitoring
+        values:
+          service:
+            enabled: false
+          config:
+            inputs:
+              - http:
+                  urls:
+                    - "https://dwd.api.proxy.bund.dev/v30/stationOverviewExtended?stationIds=10838,10840"
+                  method: "GET"
+                  interval: "10s"
+                  response_timeout: "10s"
+                  data_format: "json"
+            outputs:
+              - influxdb_v2:
+                  urls:
+                    - "http://influxdb-influxdb2.monitoring.svc.cluster.local:80"
+                  organization: "{{ influxdb2_organization }}"
+                  bucket: "{{ influxdb2_bucket }}"
+                  token: "securetoken" # TODO: Vault
+    # In case this is installed multiple times on the machine make sure the postgre pv and pvc is remove properly
+    # Otherwise the authentication will fail
+    # Also be sure to not change the user name. Otherwise the bitnami chart does not work properly.
+    - name: Install mlflow from bitnahmi helm chart
+      kubernetes.core.helm:
+        name: mlflow
+        chart_ref: bitnami/mlflow
+        release_namespace: mlflow
+        create_namespace: true
+        chart_version: 2.0.0
+        values:
+          postgresql:
+            enabled: true
+            auth:
+              username: "{{ mlflow_postgesql_user }}"
+              password: "{{ mlflow_postgesql_password }}"
+              database: "{{ mlflow_postgesql_database }}"
+          minio:
+            enabled: true
+            auth:
+              rootUser: "{{ mlflow_minio_rootuser }}"
+              rootPassword: "{{ mlflow_minio_rootpassword }}"
+          # The http port is required in order for mlflow to find a free node port
+          tracking:
+            service:
+              ports:
+                http: "{{ mlflow_serviceport_http }}"
+            auth:
+              username: "{{ mlflow_auth_username }}"
+              password: "{{ mlflow_auth_password }}"
+            ingress:
+              enabled: "{{ mlflow_ingress_enabled }}"
+    - name: Install docker related packages
+      become: true
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - software-properties-common
+    - name: Add docker GPG-Key hinzu
+      become: true
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+    - name: Add Docker Repository
+      become: true
+      ansible.builtin.apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
+    - name: Update Packages List
+      become: true
+      ansible.builtin.apt:
+        update_cache: true
+      register: update_result
+      retries: 3
+      delay: 10
+      until: update_result is succeeded
+    - name: Install Docker
+      become: true
+      ansible.builtin.apt:
+        name: docker-ce
+        state: present
+    - name: Ensure Docker service is running
+      become: true
+      ansible.builtin.systemd:
+        name: docker
+        enabled: true
+        state: started
+    - name: Ensure the Docker registry container is running
+      become: true
+      community.docker.docker_container:
+        name: registry
+        image: registry:2
+        state: started
+        restart_policy: always
+        published_ports:
+          - "5000:5000"
+    - name: Configure Docker to use insecure registry
+      become: true
+      ansible.builtin.template:
+        src: daemon.json.j2
+        dest: /etc/docker/daemon.json
+        mode: '0644'
+    - name: Restart Docker to apply changes
+      become: true
+      ansible.builtin.systemd:
+        name: docker
+        state: restarted
+        enabled: true

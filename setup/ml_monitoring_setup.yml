@@ -1,155 +1,156 @@
 ---
-- hosts: k3s_cluster
+- name: Machine Learning Setup
+  hosts: k3s_cluster
   vars_files:
     - vars.yaml
     - sample-vault.yaml
   tasks:
-  - name: Create monitoring namespace
-    kubernetes.core.k8s:
-      name: machinelearning
-      api_version: v1
-      kind: Namespace
-      state: present
-  - name: Apply machine learning model deployment
-    kubernetes.core.k8s:
-      state: present
-      definition: "{{ lookup('file', '{{ playbook_dir }}/../resources/deployment.yaml') | from_yaml }}"
-  - name: Apply machine learning model service
-    kubernetes.core.k8s:
-      state: present
-      definition: "{{ lookup('file', '{{ playbook_dir }}/../resources/service.yaml') | from_yaml }}"
-  - name: Create monitoring namespace
-    kubernetes.core.k8s:
-      name: monitoring
-      api_version: v1
-      kind: Namespace
-      state: present
-  - name: Add stable grafana chart repo
-    kubernetes.core.helm_repository:
-      name: grafana
-      repo_url: "https://grafana.github.io/helm-charts"
-  - name: Add airflow chart repo
-    kubernetes.core.helm_repository:
-      name: apache-airflow
-      repo_url: "https://airflow.apache.org/"
-  - name: Deploy latest version of Grafana chart inside monitoring namespace with values
-    kubernetes.core.helm:
-      name: grafana
-      chart_ref: grafana/grafana
-      release_namespace: monitoring
-      values:
-        replicas: 1
-        ingress:
-          enabled: true
-          hosts:
-            - tig.grafana.local
-          path: /
-        dashboardProviders:
-          dashboardproviders.yaml:
-            apiVersion: 1
-            providers:
-            - name: 'default'
-              orgId: 1
-              folder: ''
-              type: file
-              disableDeletion: false
-              editable: true
-              options:
-                path: /var/lib/grafana/dashboards/default
-        dashboards:
-          default:
-            weather-forecast:
-              json: |
-                {{ lookup('file', 'grafana-dashboard.json') | indent(16) }}
-        datasources:
-          datasources.yaml:
-            apiVersion: 1
-            datasources:
-              - name: InfluxDB
-                type: influxdb
-                access: proxy
-                url: http://influxdb-influxdb2.monitoring.svc.cluster.local:80
-                isDefault: true
-                jsonData:
-                  version: Flux
-                  organization: "{{ influxdb2_organization }}"
-                  defaultBucket: "{{ influxdb2_bucket }}"
-                  tlsSkipVerify: "{{ influxdb2_tlsSkipVerify }}"
-                secureJsonData:
-                  token: securetoken # TODO: Vault!
-  - name: Ensure the directory exists on the host for PV
-    become: yes
-    ansible.builtin.file:
-      path: "{{ airflow_pv_target_dir }}"
-      state: directory
-      mode: '0755'
-  - name: Copy all dags from the repo directory to the airflow PV directory
-    become: yes
-    ansible.builtin.synchronize:
-      src: "{{ airflow_local_source_dir }}/"
-      dest: "{{ airflow_pv_target_dir }}"
-      mode: push
-      recursive: yes
-  - name: Create PersistentVolume
-    k8s:
-      definition:
-        apiVersion: v1
-        kind: PersistentVolume
-        metadata:
-          name: airflow-pv
-        spec:
-          capacity:
-            storage: 1Gi
-          accessModes:
-            - ReadWriteMany
-          persistentVolumeReclaimPolicy: Retain
-          storageClassName: manual
-          hostPath:
-            path: "{{ airflow_pv_target_dir }}"
-  - name: Create airflow namespace
-    kubernetes.core.k8s:
-      name: airflow
-      api_version: v1
-      kind: Namespace
-      state: present
-  - name: Create Airflow PersistentVolumeClaim
-    kubernetes.core.k8s:
-      definition:
-        apiVersion: v1
-        kind: PersistentVolumeClaim
-        metadata:
-          name: airflow-pvc
-          namespace: "{{ airflow_namespace }}"
-        spec:
-          accessModes:
-            - ReadWriteMany
-          resources:
-            requests:
-              storage: 1Gi
-          storageClassName: manual
-  - name: Deploy latest version of Apache Airlfow chart inside its own namespace with values
-    kubernetes.core.helm:
-      name: airflow
-      chart_ref: apache-airflow/airflow
-      release_namespace: airflow
-      values:
-        config:
-          webserver:
-            expose_config: True
-        dags:
-          persistence:
+    - name: Create monitoring namespace
+      kubernetes.core.k8s:
+        name: machinelearning
+        api_version: v1
+        kind: Namespace
+        state: present
+    - name: Apply machine learning model deployment
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '{{ playbook_dir }}/../resources/deployment.yaml') | from_yaml }}"
+    - name: Apply machine learning model service
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '{{ playbook_dir }}/../resources/service.yaml') | from_yaml }}"
+    - name: Create monitoring namespace
+      kubernetes.core.k8s:
+        name: monitoring
+        api_version: v1
+        kind: Namespace
+        state: present
+    - name: Add stable grafana chart repo
+      kubernetes.core.helm_repository:
+        name: grafana
+        repo_url: "https://grafana.github.io/helm-charts"
+    - name: Add airflow chart repo
+      kubernetes.core.helm_repository:
+        name: apache-airflow
+        repo_url: "https://airflow.apache.org/"
+    - name: Deploy latest version of Grafana chart inside monitoring namespace with values
+      kubernetes.core.helm:
+        name: grafana
+        chart_ref: grafana/grafana
+        release_namespace: monitoring
+        values:
+          replicas: 1
+          ingress:
             enabled: true
-            existingClaim: airflow-pvc
-          gitSync:
-            enabled: false
-        ingress:
-          web:
-            enabled: true
-            path: "/"
             hosts:
-              - apache-airflow.local
-        env:
-          - name: "influxdb2_token"
-            value: "{{ influxdb2_token }}"
-        defaultAirflowRepository: localhost:5000/custom-airflow
-        defaultAirflowTag: "1.01"
+              - tig.grafana.local
+            path: /
+          dashboardProviders:
+            dashboardproviders.yaml:
+              apiVersion: 1
+              providers:
+                - name: 'default'
+                  orgId: 1
+                  folder: ''
+                  type: file
+                  disableDeletion: false
+                  editable: true
+                  options:
+                    path: /var/lib/grafana/dashboards/default
+          dashboards:
+            default:
+              weather-forecast:
+                json: |
+                  {{ lookup('file', 'grafana-dashboard.json') | indent(16) }}
+          datasources:
+            datasources.yaml:
+              apiVersion: 1
+              datasources:
+                - name: InfluxDB
+                  type: influxdb
+                  access: proxy
+                  url: http://influxdb-influxdb2.monitoring.svc.cluster.local:80
+                  isDefault: true
+                  jsonData:
+                    version: Flux
+                    organization: "{{ influxdb2_organization }}"
+                    defaultBucket: "{{ influxdb2_bucket }}"
+                    tlsSkipVerify: "{{ influxdb2_tlsSkipVerify }}"
+                  secureJsonData:
+                    token: securetoken # TODO: Vault!
+    - name: Ensure the directory exists on the host for PV
+      become: true
+      ansible.builtin.file:
+        path: "{{ airflow_pv_target_dir }}"
+        state: directory
+        mode: '0755'
+    - name: Copy all dags from the repo directory to the airflow PV directory
+      become: true
+      ansible.posix.synchronize:
+        src: "{{ airflow_local_source_dir }}/"
+        dest: "{{ airflow_pv_target_dir }}"
+        mode: push
+        recursive: true
+    - name: Create PersistentVolume
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: v1
+          kind: PersistentVolume
+          metadata:
+            name: airflow-pv
+          spec:
+            capacity:
+              storage: 1Gi
+            accessModes:
+              - ReadWriteMany
+            persistentVolumeReclaimPolicy: Retain
+            storageClassName: manual
+            hostPath:
+              path: "{{ airflow_pv_target_dir }}"
+    - name: Create airflow namespace
+      kubernetes.core.k8s:
+        name: airflow
+        api_version: v1
+        kind: Namespace
+        state: present
+    - name: Create Airflow PersistentVolumeClaim
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: v1
+          kind: PersistentVolumeClaim
+          metadata:
+            name: airflow-pvc
+            namespace: "{{ airflow_namespace }}"
+          spec:
+            accessModes:
+              - ReadWriteMany
+            resources:
+              requests:
+                storage: 1Gi
+            storageClassName: manual
+    - name: Deploy latest version of Apache Airlfow chart inside its own namespace with values
+      kubernetes.core.helm:
+        name: airflow
+        chart_ref: apache-airflow/airflow
+        release_namespace: airflow
+        values:
+          config:
+            webserver:
+              expose_config: true
+          dags:
+            persistence:
+              enabled: true
+              existingClaim: airflow-pvc
+            gitSync:
+              enabled: false
+          ingress:
+            web:
+              enabled: true
+              path: "/"
+              hosts:
+                - apache-airflow.local
+          env:
+            - name: "influxdb2_token"
+              value: "{{ influxdb2_token }}"
+          defaultAirflowRepository: localhost:5000/custom-airflow
+          defaultAirflowTag: "1.01"
