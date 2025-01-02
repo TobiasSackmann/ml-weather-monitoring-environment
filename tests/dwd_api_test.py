@@ -1,6 +1,7 @@
 from unittest.mock import patch
 from unittest import TestCase
 import unittest
+import sys
 
 
 class TestDwdAPI(TestCase):
@@ -14,6 +15,7 @@ class TestDwdAPI(TestCase):
         mock_response.json.return_value = {'weather': 'sunny'}
         
         # Import the script to execute it with mocks
+        sys.path.insert(1, "./notebooks")  # noqa: E402
         import dwd_api
         
         # Assert
