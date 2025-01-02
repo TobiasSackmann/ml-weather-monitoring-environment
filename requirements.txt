@@ -10,3 +10,8 @@ matplotlib
 seaborn
 numpy
 python-dotenv
+nbconvert
+ansible
+ansible-lint
+pydocstyle
+requests

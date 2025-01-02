@@ -1,4 +1,4 @@
-# .github/workflows/lint-notebooks.yml
+# .github/workflows/codecheck.yml
 name: Code Check
 on:
   push:
