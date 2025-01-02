@@ -22,7 +22,7 @@ jobs:
     - name: Lint Jupyter Notebooks
       run: |
         nbqa black . --check
-    - name: Lint Python Files with flake8
+    - name: Lint Python Files with black
       run: |
         black . --check
     - name: Check Python Documentation with pydocstyle
