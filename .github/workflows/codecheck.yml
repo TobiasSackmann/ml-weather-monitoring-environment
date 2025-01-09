@@ -27,7 +27,7 @@ jobs:
         black . --check
     - name: Check Python Documentation with pydocstyle
       run: |
-        pydocstyle .
+        pydocstyle --match='^(?!test_).*\.py$' .
     - name: Lint Ansible Playbooks
       run: |
         ansible-lint --offline setup/cluster_setup.yml setup/ml_monitoring_setup.yml 
