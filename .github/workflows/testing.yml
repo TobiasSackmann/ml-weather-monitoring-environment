@@ -23,7 +23,7 @@ jobs:
       run: |
         jupyter nbconvert --to script ./notebooks/dwd_api.ipynb  --output-dir=./notebooks
         sed -Ei 's/\bdisplay\b/print/g' ./notebooks/dwd_api.py
-        python3 ./tests/test_dwd_api_test.py
+        python3 ./tests/test_dwd_api.py
     - name: Test Database Connection Notebook
       run: |
         jupyter nbconvert --to script ./notebooks/database_connection.ipynb  --output-dir=./notebooks
