@@ -1,8 +1,15 @@
 #!/usr/bin/python3
+"""
+helper for constructing influxdb queries.
+
+This module provides utility functions for database operations, including
+connection handling and query execution.
+"""
+
+
 from influxdb_client import InfluxDBClient
 from datetime import datetime, timedelta, timezone
 import pandas as pd
-from dotenv import load_dotenv
 import os
 
 
@@ -12,12 +19,27 @@ def query_data(
     org="",
     bucket="",
     query="",
-    start_time="2024-07-28T12:00:00Z",
+    start_time="2025-01-09T10:00:00Z",
     end_time="",
     field_list=None,
     query_range=5,
 ):
+    """
+    Execute the query towards influxdb.
 
+    Args:
+        url (integer): The number of desired timestamps
+        token (string): The influxdb authentication token
+        org (string): the influxdb2 org
+        bucket (string):  the influxdb2
+        start_time (string): The start of the query timerange
+        end_time (string): The end of the query timerange
+        field_list (list): The fileds to be queried
+        query_range (integer): The amount of days contained in a bulk query (for long timeranges)
+
+    Returns:
+        Dataframe: A pandas Dataframe containing the query results.
+    """
     token = os.getenv("INFLUXDB2_TOKEN") if token == "" else token
     org = os.getenv("INFLUXDB2_ORGANIZATION") if org == "" else org
     bucket = os.getenv("INFLUXDB2_BUCKET") if bucket == "" else bucket
@@ -44,6 +66,18 @@ def query_data(
 
 
 def build_query(bucket, start_time, end_time, field_list):
+    """
+    Build the query towards influxdb.
+
+    Args:
+        bucket (string):  the influxdb2
+        start_time (string): The start of the query timerange
+        end_time (string): The end of the query timerange
+        field_list (list): The fileds to be queried
+
+    Returns:
+        query: The query as string.
+    """
     query = f"""
     from(bucket: "{bucket}") 
     |> range(start: {start_time.strftime("%Y-%m-%dT%H:%M:%SZ")}, stop: {end_time.strftime("%Y-%m-%dT%H:%M:%SZ")})
@@ -64,6 +98,17 @@ def build_query(bucket, start_time, end_time, field_list):
 
 
 def split_date_range(start_date_str, end_date_str, query_range):
+    """
+    Split the timerange for bulk queries.
+
+    Args:
+        start_time (string): The start of the query timerange
+        end_time (string): The end of the query timerange
+        query_range (integer): The amount of days contained in a bulk query (for long timeranges)
+
+    Returns:
+        query: The query as string.
+    """
     # Convert strings to datetime objects
     start_date = datetime.strptime(start_date_str, "%Y-%m-%dT%H:%M:%SZ")  # %Y-%m-%d
     end_date = datetime.strptime(end_date_str, "%Y-%m-%dT%H:%M:%SZ")  # %Y-%m-%d

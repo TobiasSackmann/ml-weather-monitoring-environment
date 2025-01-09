@@ -1,9 +1,29 @@
 #!/usr/bin/python3
+"""
+helper for constructing influxdb queries.
+
+This module provides utility functions for database operations, including
+connection handling and query execution.
+"""
+
+
 from influxdb_client import InfluxDBClient
 
 
 def query_data(url="", token="", org="influxdata", bucket="default", field_list=None):
+    """
+    Execute the query towards influxdb.
 
+    Args:
+        url (integer): The number of desired timestamps
+        token (string): The influxdb authentication token
+        org (string): the influxdb2 org
+        bucket (string):  the influxdb2
+        field_list (list): The fileds to be queried
+
+    Returns:
+        Dataframe: A pandas Dataframe containing the query results.
+    """
     client = InfluxDBClient(url=url, token=token, org=org)
     query_api = client.query_api()
     query = build_query(bucket, field_list)
@@ -13,6 +33,16 @@ def query_data(url="", token="", org="influxdata", bucket="default", field_list=
 
 
 def build_query(bucket, field_list):
+    """
+    Construct the influxdb2 query.
+
+    Args:
+        bucket (string):  the influxdb2
+        field_list (list): The fileds to be queried
+
+    Returns:
+        query: The query as a string.
+    """
     query = f"""
     from(bucket: "{bucket}") 
     |> range(start: -24h)
