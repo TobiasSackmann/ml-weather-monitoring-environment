@@ -18,7 +18,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install nbconvert requests IPython influxdb_client dotenv pickle pandas numpy seaborn mlflow scikit-learn matplotlib
+        pip install nbconvert requests IPython influxdb_client python-dotenv pickle pandas numpy seaborn mlflow scikit-learn matplotlib
     - name: Test DWD Api Notebook
       run: |
         jupyter nbconvert --to script ./notebooks/dwd_api.ipynb  --output-dir=./notebooks
