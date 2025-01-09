@@ -18,7 +18,7 @@ def query_data(url="", token="", org="influxdata", bucket="default", field_list=
         url (integer): The number of desired timestamps
         token (string): The influxdb authentication token
         org (string): the influxdb2 org
-        bucket (string):  the influxdb2 
+        bucket (string):  the influxdb2
         field_list (list): The fileds to be queried
 
     Returns:
@@ -37,7 +37,7 @@ def build_query(bucket, field_list):
     Construct the influxdb2 query.
 
     Args:
-        bucket (string):  the influxdb2 
+        bucket (string):  the influxdb2
         field_list (list): The fileds to be queried
 
     Returns:
