@@ -18,7 +18,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install nbconvert requests
+        pip install nbconvert requests IPython
     - name: Test DWD Api Notebook
       run: |
         jupyter nbconvert --to script ./notebooks/dwd_api.ipynb  --output-dir=./notebooks
