@@ -2,7 +2,6 @@
 from influxdb_client import InfluxDBClient
 from datetime import datetime, timedelta, timezone
 import pandas as pd
-from dotenv import load_dotenv
 import os
 
 
@@ -12,7 +11,7 @@ def query_data(
     org="",
     bucket="",
     query="",
-    start_time="2024-07-28T12:00:00Z",
+    start_time="2025-01-09T10:00:00Z",
     end_time="",
     field_list=None,
     query_range=5,
