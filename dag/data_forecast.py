@@ -1,3 +1,11 @@
+"""
+data_forecast.py.
+
+This module is supposed to be used as a apache airflow DAG
+It provides functionality to collect data from an influxdb instance, preproces the data,
+send it to an ml model docker container for inference and write the results back to influxdb
+"""
+
 import json
 import requests
 import numpy as np
@@ -37,6 +45,15 @@ write_api = client.write_api(write_options=SYNCHRONOUS)
 
 
 def generate_timestamps(n):
+    """
+    Generate a list of n timestamps starting now.
+
+    Args:
+        n (integer): The number of desired timestamps
+
+    Returns:
+        list of datetime: A list of timestamps from now to the calculated end date date.
+    """
     # Aktuelle Zeit in Berliner Zeitzone (CET/CEST)
     now = datetime.now(pytz.timezone("Europe/Berlin"))
     timestamps = []
@@ -49,6 +66,12 @@ def generate_timestamps(n):
 
 # Step 1: Function to read data from InfluxDB
 def read_from_influxdb():
+    """
+    Read data from an influxdb.
+
+    Returns:
+        data from influxdb: the list of data as an pandas dataframe.
+    """
     selected_columns = [
         "10838_days_0_precipitation",
         "10838_days_0_sunrise",
@@ -79,6 +102,15 @@ def read_from_influxdb():
 
 # Step 2: Function to Preprocess the Dataframe
 def preprocess_dataframe(df):
+    """
+    Preprocess dataframe before sending it to an inference instance.
+
+    Args:
+        df (DataFrame): The target dataframe
+
+    Returns:
+        preprocessed dataframe: The preprocessed dataframe.
+    """
     df.set_index("_time", inplace=True)
     df = df.select_dtypes(include="float64")
     df.interpolate(inplace=True)
@@ -100,6 +132,12 @@ def preprocess_dataframe(df):
 
 # Step 3: Function to send data to TensorFlow Serving
 def send_to_tf_serving(df):
+    """
+    Send Dataframe to an inference instance.
+
+    Args:
+        df (Dataframe): The target DataFrame
+    """
     time_range = 24
     df = df[:time_range]
     df.reset_index(drop=True, inplace=True)
@@ -120,6 +158,12 @@ def send_to_tf_serving(df):
 
 # Step 4: Function to write data back to InfluxDB
 def write_to_influxdb(result):
+    """
+    Write inference results to influxdb.
+
+    Args:
+        results (numpy array): The inference results
+    """
     predictions = result[0]
     columns = result[1]
     timestamps = generate_timestamps(len(predictions))
