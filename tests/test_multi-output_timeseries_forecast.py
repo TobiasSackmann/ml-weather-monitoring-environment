@@ -25,7 +25,7 @@ class TestIsolationForest(TestCase):
         # Import the script to execute it with mocks
         sys.path.insert(1, "./notebooks")  # noqa: E402
         sys.path.insert(1, "./library")
-        import multi-output_timeseries_forecast  # type: ignore
+        import multi_output_timeseries_forecast  # type: ignore
 
 
 if __name__ == "__main__":

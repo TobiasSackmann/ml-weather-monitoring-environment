@@ -71,6 +71,6 @@ jobs:
         python3 ./tests/test_isolation_forest_with_pca.py
     - name: Test Multioutput Time Series Notebook 
       run: |
-        jupyter nbconvert --to script ./notebooks/multi-output_timeseries_forecast.ipynb  --output-dir=./notebooks
-        sed -Ei 's/\bdisplay\b/print/g' ./notebooks/multi-output_timeseries_forecast.py
-        python3 ./tests/test_multi-output_timeseries_forecast.py
+        jupyter nbconvert --to script ./notebooks/multi_output_timeseries_forecast.ipynb  --output-dir=./notebooks
+        sed -Ei 's/\bdisplay\b/print/g' ./notebooks/multi_output_timeseries_forecast.py
+        python3 ./tests/test_multi_output_timeseries_forecast.py
