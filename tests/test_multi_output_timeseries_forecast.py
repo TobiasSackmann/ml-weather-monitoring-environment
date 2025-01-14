@@ -5,7 +5,7 @@ import sys
 import pandas as pd
 
 
-class TestIsolationForest(TestCase):
+class TestMultiOutputForecast(TestCase):
 
     @patch("matplotlib.pyplot.show")
     @patch("influxdb_client.InfluxDBClient.query_api")

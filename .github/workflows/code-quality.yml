@@ -74,3 +74,8 @@ jobs:
         jupyter nbconvert --to script ./notebooks/multi_output_timeseries_forecast.ipynb  --output-dir=./notebooks
         sed -Ei 's/\bdisplay\b/print/g' ./notebooks/multi_output_timeseries_forecast.py
         python3 ./tests/test_multi_output_timeseries_forecast.py
+    - name: Test Timserires forecast Approach Evaluation Notebook 
+      run: |
+        jupyter nbconvert --to script ./notebooks/timeseries_forecast_approach_evaluation.ipynb  --output-dir=./notebooks
+        sed -Ei 's/\bdisplay\b/print/g' ./notebooks/timeseries_forecast_approach_evaluation.py
+        python3 ./tests/test_timeseries_forecast_approach_evaluation.py
