@@ -3,6 +3,7 @@ from unittest import TestCase
 import unittest
 import sys
 import pandas as pd
+import runpy
 
 
 class TestIsolationForest(TestCase):
@@ -23,9 +24,8 @@ class TestIsolationForest(TestCase):
         )
 
         # Import the script to execute it with mocks
-        sys.path.insert(1, "./notebooks")  # noqa: E402
         sys.path.insert(1, "./library")
-        import isolation_forest_with_pca  # type: ignore
+        runpy.run_path("./notebooks/isolation_forest_with_pca.py")
 
 
 if __name__ == "__main__":

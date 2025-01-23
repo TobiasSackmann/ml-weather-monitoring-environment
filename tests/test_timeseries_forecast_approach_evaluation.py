@@ -1,32 +1,18 @@
-from unittest.mock import patch
-from unittest import TestCase
-import unittest
 import sys
 import pandas as pd
+import runpy
 
 
-class TestTimeSeriesForecastEvaluation(TestCase):
+def test_forecast_approach_evalusation(mocker):
+    # Arrange
+    mocker.patch("mlflow.set_tracking_uri")
+    mocker.patch("mlflow.set_experiment")
+    mocker.patch("mlflow.autolog")
+    mocker.patch("matplotlib.pyplot.show")
+    expected_df = pd.read_json("./tests/resources/long_dataframe.json", orient="table")
+    mock_query_api = mocker.patch("influxdb_client.InfluxDBClient.query_api")
+    mock_query_api.return_value.query_data_frame = mocker.Mock(return_value=expected_df)
 
-    @patch("matplotlib.pyplot.show")
-    @patch("influxdb_client.InfluxDBClient.query_api")
-    @patch("mlflow.autolog")
-    @patch("mlflow.set_experiment")
-    def test_isolationforest(
-        self, mock_setexperiment, mock_autolog, mock_query, mock_show
-    ):
-        # Arrange
-        mock_setexperiment.return_value = None
-        mock_show.return_value = None
-        mock_autolog.return_value = None
-        mock_query.return_value.query_data_frame.return_value = pd.read_json(
-            "./tests/resources/isolation_forest.json", orient="table"
-        )
-
-        # Import the script to execute it with mocks
-        sys.path.insert(1, "./notebooks")  # noqa: E402
-        sys.path.insert(1, "./library")
-        import timeseries_forecast_approach_evaluation  # type: ignore
-
-
-if __name__ == "__main__":
-    unittest.main()
+    # Import the script to execute it with mocks
+    sys.path.insert(1, "./library")
+    runpy.run_path("./notebooks/timeseries_forecast_approach_evaluation.py")

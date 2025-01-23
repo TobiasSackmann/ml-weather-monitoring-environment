@@ -1,32 +1,29 @@
-from unittest.mock import patch
-from unittest import TestCase
-import unittest
 import sys
+import runpy
 import pandas as pd
 
 
-class TestMultiOutputForecast(TestCase):
+def test_multi_output_timeseries_forecast(mocker):
+    # Arrange
+    mocker.patch("mlflow.set_tracking_uri")
+    mocker.patch("mlflow.set_experiment")
+    mocker.patch("mlflow.autolog")
+    mocker.patch("matplotlib.pyplot.show")
 
-    @patch("matplotlib.pyplot.show")
-    @patch("influxdb_client.InfluxDBClient.query_api")
-    @patch("mlflow.autolog")
-    @patch("mlflow.set_experiment")
-    def test_isolationforest(
-        self, mock_setexperiment, mock_autolog, mock_query, mock_show
-    ):
-        # Arrange
-        mock_setexperiment.return_value = None
-        mock_show.return_value = None
-        mock_autolog.return_value = None
-        mock_query.return_value.query_data_frame.return_value = pd.read_json(
-            "./tests/resources/isolation_forest.json", orient="table"
-        )
+    expected_df = pd.read_json("./tests/resources/long_dataframe.json", orient="table")
+    mock_query_api = mocker.patch("influxdb_client.InfluxDBClient.query_api")
+    mock_query_api.return_value.query_data_frame = mocker.Mock(return_value=expected_df)
 
-        # Import the script to execute it with mocks
-        sys.path.insert(1, "./notebooks")  # noqa: E402
-        sys.path.insert(1, "./library")
-        import multi_output_timeseries_forecast  # type: ignore
+    original_resample = pd.DataFrame.resample
 
+    def custom_resample(self, rule, *args, **kwargs):
+        # Modify parameter "rule" to "s" if "h" is passed
+        if rule == "h":
+            rule = "s"
+        return original_resample(self, rule, *args, **kwargs)
 
-if __name__ == "__main__":
-    unittest.main()
+    mocker.patch.object(pd.DataFrame, "resample", custom_resample)
+
+    # Act
+    sys.path.insert(1, "./library")
+    runpy.run_path("./notebooks/multi_output_timeseries_forecast.py")

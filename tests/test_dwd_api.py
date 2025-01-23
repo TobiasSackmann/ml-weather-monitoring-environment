@@ -1,7 +1,7 @@
 from unittest.mock import patch
 from unittest import TestCase
 import unittest
-import sys
+import runpy
 
 
 class TestDwdAPI(TestCase):
@@ -14,9 +14,7 @@ class TestDwdAPI(TestCase):
         mock_response.status_code = 200  # Set status code
         mock_response.json.return_value = {"weather": "sunny"}
 
-        # Import the script to execute it with mocks
-        sys.path.insert(1, "./notebooks")  # noqa: E402
-        import dwd_api
+        runpy.run_path("./notebooks/dwd_api.py")
 
         # Assert
         mock_get.assert_called_once_with(

@@ -15,3 +15,5 @@ ansible
 ansible-lint
 pydocstyle
 requests
+pytest
+pytest-mock
