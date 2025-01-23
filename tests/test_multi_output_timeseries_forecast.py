@@ -10,7 +10,7 @@ def test_multi_output_timeseries_forecast(mocker):
     mocker.patch("mlflow.autolog")
     mocker.patch("matplotlib.pyplot.show")
 
-    expected_df = pd.read_json("./tests/resources/long_dataframe.json", orient="table")
+    expected_df = pd.read_json("./tests/resources/short_dataframe.json", orient="table")
     mock_query_api = mocker.patch("influxdb_client.InfluxDBClient.query_api")
     mock_query_api.return_value.query_data_frame = mocker.Mock(return_value=expected_df)
 
