@@ -3,12 +3,12 @@ from unittest import TestCase
 import unittest
 import sys
 import pandas as pd
+import runpy
 
 
 class TestFeatureSelection(TestCase):
 
     @patch("influxdb_client.InfluxDBClient.query_api")
-    # @patch("builtins.print")
     def test_feature_selection(self, mock_query):
         # Arrange
         mock_query.return_value.query_data_frame.return_value = pd.read_json(
@@ -16,9 +16,8 @@ class TestFeatureSelection(TestCase):
         )
 
         # Import the script to execute it with mocks
-        sys.path.insert(1, "./notebooks")  # noqa: E402
         sys.path.insert(1, "./library")
-        import feature_selection  # type: ignore
+        runpy.run_path("./notebooks/feature_selection.py")
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 from unittest.mock import patch
 from unittest import TestCase
 import unittest
-import sys
+import runpy
 
 
 class TestDwdAPI(TestCase):
@@ -14,8 +14,7 @@ class TestDwdAPI(TestCase):
         mock_response.status = "ready"
 
         # Import the script to execute it with mocks
-        sys.path.insert(1, "./notebooks")  # noqa: E402
-        import database_connection  # type: ignore
+        runpy.run_path("./notebooks/database_connection.py")
 
         # Assert
         mock_ready.assert_called_once_with()

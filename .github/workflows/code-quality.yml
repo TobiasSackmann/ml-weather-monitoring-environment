@@ -43,7 +43,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install nbconvert requests IPython influxdb_client python-dotenv pandas numpy seaborn mlflow scikit-learn matplotlib
+        pip install nbconvert requests IPython influxdb_client python-dotenv pandas numpy seaborn mlflow scikit-learn matplotlib tensorflow pytest pytest-mock
     - name: Test DWD Api Notebook
       run: |
         jupyter nbconvert --to script ./notebooks/dwd_api.ipynb  --output-dir=./notebooks
@@ -69,3 +69,13 @@ jobs:
         jupyter nbconvert --to script ./notebooks/isolation_forest_with_pca.ipynb  --output-dir=./notebooks
         sed -Ei 's/\bdisplay\b/print/g' ./notebooks/isolation_forest_with_pca.py
         python3 ./tests/test_isolation_forest_with_pca.py
+    - name: Test Multioutput Time Series Notebook 
+      run: |
+        jupyter nbconvert --to script ./notebooks/multi_output_timeseries_forecast.ipynb  --output-dir=./notebooks
+        sed -Ei 's/\bdisplay\b/print/g' ./notebooks/multi_output_timeseries_forecast.py
+        pytest ./tests/test_multi_output_timeseries_forecast.py
+    - name: Test Timserires forecast Approach Evaluation Notebook 
+      run: |
+        jupyter nbconvert --to script ./notebooks/timeseries_forecast_approach_evaluation.ipynb  --output-dir=./notebooks
+        sed -Ei 's/\bdisplay\b/print/g' ./notebooks/timeseries_forecast_approach_evaluation.py
+        pytest ./tests/test_timeseries_forecast_approach_evaluation.py

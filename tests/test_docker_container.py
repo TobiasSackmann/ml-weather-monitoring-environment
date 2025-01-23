@@ -5,6 +5,7 @@ import sys
 import pandas as pd
 import sys
 import pickle
+import runpy
 
 
 class TestDockerContainer(TestCase):
@@ -317,13 +318,11 @@ class TestDockerContainer(TestCase):
                 # Standardverhalten für alle anderen open-Aufrufe
                 return original_open(file, *args, **kwargs)
 
-        # Import the script to execute it with mocks
-        sys.path.insert(1, "./notebooks")  # noqa: E402
         sys.path.insert(1, "./library")
 
         original_open = open
-        with patch("builtins.open", side_effect=open_side_effect):  # as mocked_open:
-            import docker_container  # type: ignore
+        with patch("builtins.open", side_effect=open_side_effect):
+            runpy.run_path("./notebooks/docker_container.py")
 
 
 if __name__ == "__main__":
