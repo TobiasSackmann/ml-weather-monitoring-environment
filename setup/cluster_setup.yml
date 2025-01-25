@@ -182,7 +182,7 @@
     - name: Configure Docker to use insecure registry
       become: true
       ansible.builtin.template:
-        src: daemon.json.j2
+        src: docker_daemon.json.j2
         dest: /etc/docker/daemon.json
         mode: '0644'
     - name: Restart Docker to apply changes
