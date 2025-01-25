@@ -77,7 +77,7 @@
                     defaultBucket: "{{ influxdb2_bucket }}"
                     tlsSkipVerify: "{{ influxdb2_tlsSkipVerify }}"
                   secureJsonData:
-                    token: securetoken # TODO: Vault!
+                    token: "{{ grafana_secure_token }}"
     - name: Ensure the directory exists on the host for PV
       become: true
       ansible.builtin.file:

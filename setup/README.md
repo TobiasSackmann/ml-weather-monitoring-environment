@@ -1,0 +1,2 @@
+# Setup Subfolder
+This folder contains files to setup the monitoring environment. This includes Ansible Playbooks, Ansible vars files, Jinja Template file, as well as the JSON for the Grafana dashboard.

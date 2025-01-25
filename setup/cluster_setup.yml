@@ -113,9 +113,9 @@
           postgresql:
             enabled: true
             auth:
-              username: "{{ mlflow_postgesql_user }}"
-              password: "{{ mlflow_postgesql_password }}"
-              database: "{{ mlflow_postgesql_database }}"
+              username: "{{ mlflow_postgresql_user }}"
+              password: "{{ mlflow_postgresql_password }}"
+              database: "{{ mlflow_postgresql_database }}"
           minio:
             enabled: true
             auth:
