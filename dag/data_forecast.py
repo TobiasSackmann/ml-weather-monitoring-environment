@@ -15,7 +15,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
-from utils import database_helper
+from dag.utils import influxdb_query
 import pandas as pd
 import os
 
@@ -95,7 +95,7 @@ def read_from_influxdb():
         for item in selected_columns
         if all(substring in item for substring in strings_to_include)
     ]
-    return database_helper.query_data(
+    return influxdb_query.query_data(
         url=INFLUXDB_URL, token=INFLUXDB_TOKEN, field_list=selected_columns
     )
 
