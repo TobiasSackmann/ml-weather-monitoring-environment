@@ -30,7 +30,7 @@ jobs:
         pydocstyle --match='^(?!test_).*\.py$' .
     - name: Lint Ansible Playbooks
       run: |
-        ansible-lint --offline setup/cluster_setup.yml setup/ml_monitoring_setup.yml 
+        ansible-lint --offline setup/cluster_setup.yml setup/ml_monitoring_setup.yml
   test:
     runs-on: ubuntu-latest
     steps:

@@ -69,15 +69,17 @@ In this phase the basic setup is installed on the cluster.
     influxdb2_token: securetoken
 
     # mlflow
-    mlflow_postgesql_user: bn_mlflow
-    mlflow_postgesql_password: password
-    mlflow_postgesql_database: bitnami_mlflow
+    mlflow_postgresql_user: bn_mlflow
+    mlflow_postgresql_password: password
+    mlflow_postgresql_database: bitnami_mlflow
     mlflow_minio_rootuser: admin
     mlflow_minio_rootpassword: password
     mlflow_serviceport_http: 30001
     mlflow_auth_username: user
     mlflow_auth_password: password
     mlflow_ingress_enabled: true
+
+    grafana_secure_token: securetoken
     ```
 * Execute the basic install ansible playbook. If a file for en-/decrypting the vault is used. The command is:
     ```shell
@@ -94,7 +96,7 @@ In this phase the basic setup is installed on the cluster.
 ### Machine Learning Model Training
 Now the Machine Learning model needs to be created.
 * Preparation for Training the Machine Learning Model.
-    * An .env file should be created in the notebooks directory in order to handle sensistive data.
+    * An .env file should be created in the notebooks directory in order to handle sensitive data.
     Example content:
     ```shell
     INFLUXDB2_USER=admin
@@ -109,7 +111,7 @@ Now the Machine Learning model needs to be created.
     MLFLOW_TRACKING_USERNAME=user
     MLFLOW_TRACKING_PASSWORD=password
     ```
-    * Run the feature selektion notebook feature_selection.ipynb from within the notebooks directory.
+    * Run the feature selection notebook feature_selection.ipynb from within the notebooks directory.
 * Then run the desired notebook for training a model. The code of this repository and this README file assume that the multi-output_timeseries_forecast.ipynb was used for that purpose. Using another notebook or a model not coming from this repository will require code amendments.
 * Put the new Machine Learning Model in a docker container. For tensorflow/keras model you can use the dockerfile ins the docker directory. Example:
     ```shell
