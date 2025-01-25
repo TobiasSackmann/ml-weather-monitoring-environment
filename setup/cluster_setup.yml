@@ -87,7 +87,7 @@
             inputs:
               - http:
                   urls:
-                    - "https://dwd.api.proxy.bund.dev/v30/stationOverviewExtended?stationIds=10838,10840"
+                    - "https://dwd.api.proxy.bund.dev/v30/stationOverviewExtended?stationIds={{ telegraf_station_ids | join(',') }}"
                   method: "GET"
                   interval: "10s"
                   response_timeout: "10s"
@@ -98,7 +98,7 @@
                     - "http://influxdb-influxdb2.monitoring.svc.cluster.local:80"
                   organization: "{{ influxdb2_organization }}"
                   bucket: "{{ influxdb2_bucket }}"
-                  token: "securetoken" # TODO: Vault
+                  token: "{{ influxdb2_token }}"
     # In case this is installed multiple times on the machine make sure the postgre pv and pvc is remove properly
     # Otherwise the authentication will fail
     # Also be sure to not change the user name. Otherwise the bitnami chart does not work properly.
