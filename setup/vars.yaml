@@ -8,3 +8,8 @@ airflow_namespace: airflow  # The namespace where the PVC should be created
 influxdb2_organization: influxdata
 influxdb2_bucket: default
 influxdb2_tlsSkipVerify: true
+
+# Telegraf
+telegraf_station_ids:
+  - 10838
+  - 10840
