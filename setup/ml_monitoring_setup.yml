@@ -1,6 +1,6 @@
 ---
 - name: Machine Learning Setup
-  hosts: k3s_cluster
+  hosts: localhost
   vars_files:
     - vars.yaml
     - sample-vault.yaml
@@ -78,19 +78,6 @@
                     tlsSkipVerify: "{{ influxdb2_tlsSkipVerify }}"
                   secureJsonData:
                     token: "{{ grafana_secure_token }}"
-    - name: Ensure the directory exists on the host for PV
-      become: true
-      ansible.builtin.file:
-        path: "{{ airflow_pv_target_dir }}"
-        state: directory
-        mode: '0755'
-    - name: Copy all dags from the repo directory to the airflow PV directory
-      become: true
-      ansible.posix.synchronize:
-        src: "{{ airflow_local_source_dir }}/"
-        dest: "{{ airflow_pv_target_dir }}"
-        mode: push
-        recursive: true
     - name: Create PersistentVolume
       kubernetes.core.k8s:
         definition:
@@ -128,6 +115,59 @@
               requests:
                 storage: 1Gi
             storageClassName: manual
+    - name: Create a temporary pod
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: file-uploader
+            namespace: "{{ airflow_namespace }}"
+          spec:
+            containers:
+              - name: busybox
+                image: busybox
+                command: ["sleep", "3600"]
+                volumeMounts:
+                  - mountPath: "{{ airflow_pv_target_dir }}"
+                    name: storage
+            volumes:
+              - name: storage
+                persistentVolumeClaim:
+                  claimName: "{{ pvc_name }}"
+      vars:
+        pvc_name: airflow-pvc
+    - name: Wait for the pod to be ready
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Pod
+        name: file-uploader
+        namespace: "{{ airflow_namespace }}"
+      register: pod_info
+      until: pod_info.resources[0].status.phase == "Running"
+      retries: 10
+      delay: 5
+    - name: Copy local files to the PVC through the Pod
+      ansible.builtin.command: >
+        kubectl cp {{ local_path }} file-uploader:"{{ airflow_pv_target_dir }}" -n "{{ airflow_namespace }}"
+      vars:
+        local_path: "{{ airflow_local_source_dir }}"  # Path to the file/folder you want to copy
+      changed_when: false
+    - name: List files in the PVC directory
+      ansible.builtin.command: >
+        kubectl exec file-uploader -n {{ airflow_namespace }} -- ls "{{ airflow_pv_target_dir }}"
+      register: pod_files
+      changed_when: false
+    - name: Delete the temporary pod
+      kubernetes.core.k8s:
+        state: absent
+        definition:
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: file-uploader
+            namespace: "{{ airflow_namespace }}"
     - name: Deploy latest version of Apache Airlfow chart inside its own namespace with values
       kubernetes.core.helm:
         name: airflow
@@ -152,5 +192,5 @@
           env:
             - name: "influxdb2_token"
               value: "{{ influxdb2_token }}"
-          defaultAirflowRepository: localhost:5000/custom-airflow
-          defaultAirflowTag: "1.01"
+          defaultAirflowRepository: "{{ hostvars['docker_registry']['ansible_host'] }}:5000/custom-airflow"
+          defaultAirflowTag: "{{ airflow_image_tag }}"

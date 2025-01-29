@@ -1,47 +1,20 @@
 ---
 - name: Cluster Setup
-  hosts: k3s_cluster
+  hosts: localhost # expects a local kubeconfig
   vars_files:
     - vars.yaml
     - sample-vault.yaml
   tasks:
-  # retries are required to ensure everything is ready after kubernetes installation.
-    - name: Install apt pre-requisites
-      become: true
-      ansible.builtin.apt:
-        name:
-          - python3-pip
-          - snap
-        update_cache: true
-      retries: 10
-      delay: 30
-    # Install requirements for this playbook
     - name: Install pip pre-requisites
       ansible.builtin.pip:
         name:
           - openshift
           - pyyaml
           - kubernetes
-    - name: Install helm
-      become: true
-      community.general.snap:
-        name:
-          - helm
-        classic: true
-    # This supports ansible by evaluating the target kubernetes cluster status
     - name: Install Helm Diff Plugin
       kubernetes.core.helm_plugin:
         plugin_path: https://github.com/databus23/helm-diff
         state: present
-    # K3s does not put the kube config where the ansible modules expect it
-    - name: Copy kubeconfig to home directory
-      become: true
-      ansible.builtin.copy:
-        src: /etc/rancher/k3s/k3s.yaml
-        dest: /home/{{ ansible_user }}/.kube/config
-        remote_src: true
-        owner: '{{ ansible_user }}'
-        mode: '0700'
     - name: Create monitoring namespace
       kubernetes.core.k8s:
         name: monitoring
@@ -56,6 +29,7 @@
       kubernetes.core.helm_repository:
         name: bitnami
         repo_url: "https://charts.bitnami.com/bitnami"
+        state: present
     - name: Deploy and configure latest version of Influxdb2 chart
       kubernetes.core.helm:
         name: influxdb
@@ -108,7 +82,6 @@
         chart_ref: bitnami/mlflow
         release_namespace: mlflow
         create_namespace: true
-        chart_version: 2.0.0
         values:
           postgresql:
             enabled: true
@@ -133,9 +106,11 @@
               enabled: "{{ mlflow_ingress_enabled }}"
     - name: Install docker related packages
       become: true
+      delegate_to: docker_registry
       ansible.builtin.apt:
         name: "{{ item }}"
         state: present
+
       loop:
         - apt-transport-https
         - ca-certificates
@@ -143,16 +118,19 @@
         - software-properties-common
     - name: Add docker GPG-Key hinzu
       become: true
+      delegate_to: docker_registry
       ansible.builtin.apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg
         state: present
     - name: Add Docker Repository
       become: true
+      delegate_to: docker_registry
       ansible.builtin.apt_repository:
-        repo: deb https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
         state: present
     - name: Update Packages List
       become: true
+      delegate_to: docker_registry
       ansible.builtin.apt:
         update_cache: true
       register: update_result
@@ -161,17 +139,20 @@
       until: update_result is succeeded
     - name: Install Docker
       become: true
+      delegate_to: docker_registry
       ansible.builtin.apt:
         name: docker-ce
         state: present
     - name: Ensure Docker service is running
       become: true
+      delegate_to: docker_registry
       ansible.builtin.systemd:
         name: docker
         enabled: true
         state: started
     - name: Ensure the Docker registry container is running
       become: true
+      delegate_to: docker_registry
       community.docker.docker_container:
         name: registry
         image: registry:2
@@ -181,13 +162,47 @@
           - "5000:5000"
     - name: Configure Docker to use insecure registry
       become: true
+      delegate_to: docker_registry
       ansible.builtin.template:
         src: docker_daemon.json.j2
         dest: /etc/docker/daemon.json
         mode: '0644'
     - name: Restart Docker to apply changes
       become: true
+      delegate_to: docker_registry
       ansible.builtin.systemd:
         name: docker
         state: restarted
         enabled: true
+    - name: Check if k3s is installed
+      delegate_to: docker_registry
+      ansible.builtin.systemd:
+        name: k3s
+      register: k3s_status
+      ignore_errors: true
+      changed_when: false
+    - name: Ensure /etc/rancher/k3s directory exists
+      delegate_to: docker_registry
+      ansible.builtin.file:
+        path: /etc/rancher/k3s
+        state: directory
+        mode: '0755'
+      when: k3s_status.rc == 0
+    - name: Create or update k3s registries.yaml
+      delegate_to: docker_registry
+      ansible.builtin.copy:
+        dest: /etc/rancher/k3s/registries.yaml
+        content: |
+          mirrors:
+            "192.168.178.196:5000":
+              endpoint:
+                - "http://192.168.178.196:5000"
+        mode: '0644'
+      when: k3s_status.rc == 0
+    - name: Restart k3s to apply changes
+      delegate_to: docker_registry
+      become: true
+      ansible.builtin.systemd:
+        name: k3s
+        state: restarted
+      when: k3s_status.rc == 0

@@ -3,6 +3,7 @@
 airflow_local_source_dir: ../dag/  # Change to your local directory containing files
 airflow_pv_target_dir: /data/pv001  # Path on the host where PV will be mounted
 airflow_namespace: airflow  # The namespace where the PVC should be created
+airflow_image_tag: "1.01"
 
 # Influxdb2
 influxdb2_organization: influxdata
