@@ -174,3 +174,35 @@
         name: docker
         state: restarted
         enabled: true
+    - name: Check if k3s is installed
+      delegate_to: docker_registry
+      ansible.builtin.systemd:
+        name: k3s
+      register: k3s_status
+      ignore_errors: true
+      changed_when: false
+    - name: Ensure /etc/rancher/k3s directory exists
+      delegate_to: docker_registry
+      ansible.builtin.file:
+        path: /etc/rancher/k3s
+        state: directory
+        mode: '0755'
+      when: k3s_status.rc == 0
+    - name: Create or update k3s registries.yaml
+      delegate_to: docker_registry
+      ansible.builtin.copy:
+        dest: /etc/rancher/k3s/registries.yaml
+        content: |
+          mirrors:
+            "192.168.178.196:5000":
+              endpoint:
+                - "http://192.168.178.196:5000"
+        mode: '0644'
+      when: k3s_status.rc == 0
+    - name: Restart k3s to apply changes
+      delegate_to: docker_registry
+      become: true
+      ansible.builtin.systemd:
+        name: k3s
+        state: restarted
+      when: k3s_status.rc == 0
