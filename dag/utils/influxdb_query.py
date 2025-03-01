@@ -38,7 +38,7 @@ def build_query(bucket, field_list):
 
     Args:
         bucket (string):  the influxdb2
-        field_list (list): The fileds to be queried
+        field_list (list): The fields to be queried
 
     Returns:
         query: The query as a string.
