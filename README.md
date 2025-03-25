@@ -30,18 +30,7 @@ The following picture shows an overview of the system components.
 
 ## Requirements
 * A Kubernetes Cluster. This Repository is supposed to be used in combination with my [proxmox-k3s repo](https://github.com/TobiasSackmann/proxmox-k3s), but can easily be adjusted to be used with any kubernetes cluster.
-* Python3 is locally installed with these packages
-    * jinja2
-    * mlflow
-    * influxdb_client
-    * pickle
-    * scikit-learn
-    * pandas
-    * matplotlib
-    * seaborn
-    * numpy
-    * tensorflow
-    * python-dotenv
+* Python3 is locally installed with the packages from the requirements.txt.
 
 ## Usage
 This repository deploys its component in two phases.
